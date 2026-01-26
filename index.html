@@ -10,8 +10,8 @@
         h1 { color: #1a73e8; border-bottom: 3px solid #1a73e8; padding-bottom: 10px; }
         .drop-zone { border: 3px dashed #1a73e8; padding: 40px; text-align: center; margin: 20px 0; border-radius: 10px; cursor: pointer; }
         .drop-zone:hover { background: #e8f0fe; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.9em; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
         th { background: #1a73e8; color: white; }
         .result-section { margin-top: 30px; padding: 25px; background: #e6fffa; border-left: 8px solid #38b2ac; }
         .metric { font-size: 1.8em; font-weight: bold; color: #e53e3e; }
@@ -20,13 +20,13 @@
 <body>
 
 <div class="card">
-    <h1>📊 전세사기 DDD 분석기 (최종 수정본)</h1>
-    <p>강서구와 은평구의 2021, 2023 실거래 파일을 한꺼번에 선택하세요.</p>
+    <h1>📊 전세사기 DDD 분석기 (V3.0 - 무적 버전)</h1>
+    <p>8개의 파일을 선택하면 데이터 인코딩과 유령 문자를 자동으로 정제하여 분석합니다.</p>
     
-    <div class="drop-zone" onclick="document.getElementById('fileInput').click()">
-        <strong>여기를 클릭하거나 CSV 파일을 드래그하세요 (8개 파일)</strong>
+    <div class="drop-zone" id="dropZone">
+        <strong>파일 8개를 여기에 드래그하거나 클릭하세요.</strong>
     </div>
-    <input type="file" id="fileInput" multiple style="display:none" onchange="handleFiles(this.files)">
+    <input type="file" id="fileInput" multiple style="display:none">
 
     <div id="status"></div>
     <div id="tableOutput"></div>
@@ -34,11 +34,16 @@
 </div>
 
 <script>
+    const fileInput = document.getElementById('fileInput');
+    const dropZone = document.getElementById('dropZone');
     let results = {};
+
+    dropZone.onclick = () => fileInput.click();
+    fileInput.onchange = (e) => handleFiles(e.target.files);
 
     async function handleFiles(files) {
         results = {};
-        document.getElementById('status').innerText = "⏳ 데이터 분석 중...";
+        document.getElementById('status').innerText = "⏳ 정밀 분석 중...";
         
         for (const file of files) {
             const parts = file.name.replace('.csv', '').split('_');
@@ -49,34 +54,28 @@
                 Papa.parse(file, {
                     header: true,
                     skipEmptyLines: true,
-                    encoding: "EUC-KR", // 한글 깨짐 방지
-                    beforeFirstChunk: function(chunk) {
-                        // 15줄 스킵 (정확하게 줄바꿈 기호 대응)
-                        const lines = chunk.split(/\r?\n/);
-                        return lines.slice(15).join('\n');
-                    },
-                    complete: function(res) {
+                    encoding: "EUC-KR",
+                    beforeFirstChunk: chunk => chunk.split(/\r?\n/).slice(15).join('\n'), // 15줄 스킵
+                    complete: res => {
                         let wolseCount = 0;
-                        let totalCount = res.data.length;
+                        const rows = res.data;
 
-                        res.data.forEach(row => {
-                            // 컬럼명에서 공백이나 줄바꿈 제거 후 값 추출
-                            const getVal = (name) => {
-                                for (let k in row) {
-                                    if (k.trim() === name) return row[k];
-                                }
-                                return "0";
-                            };
+                        // 🔍 컬럼명 유연하게 찾기 (월세금 또는 월세 포함된 컬럼)
+                        let wolseKey = null;
+                        if (rows.length > 0) {
+                            wolseKey = Object.keys(rows[0]).find(k => k.includes('월세'));
+                        }
 
-                            const rawVal = getVal('월세금(만원)');
-                            const val = String(rawVal).replace(/,/g, '').trim();
+                        rows.forEach(row => {
+                            if (!wolseKey) return;
+                            const val = String(row[wolseKey]).replace(/,/g, '').trim();
                             if (parseInt(val) > 0) wolseCount++;
                         });
 
                         results[key] = {
                             region: parts[0], type: parts[1], year: parts[2],
-                            total: totalCount, wolse: wolseCount,
-                            ratio: totalCount > 0 ? (wolseCount / totalCount) * 100 : 0
+                            total: rows.length, wolse: wolseCount,
+                            ratio: rows.length > 0 ? (wolseCount / rows.length) * 100 : 0
                         };
                         resolve();
                     }
@@ -98,22 +97,5 @@
 
     function calculateDDD() {
         const getR = (reg, typ, yr) => results[`${reg}_${typ}_${yr}`]?.ratio || 0;
-        
-        // 강서구(처치) 변화
         const ddT = (getR('gangseo','villa','2023')-getR('gangseo','villa','2021')) - (getR('gangseo','apt','2023')-getR('gangseo','apt','2021'));
-        // 은평구(대조) 변화
-        const ddC = (getR('eunpyeong','villa','2023')-getR('eunpyeong','villa','2021')) - (getR('eunpyeong','apt','2023')-getR('eunpyeong','apt','2021'));
-        
-        const ddd = ddT - ddC;
-        const out = document.getElementById('analysisOutput');
-        out.style.display = 'block';
-        out.innerHTML = `
-            <h2>🎯 분석 결과</h2>
-            <div class="metric">DDD Estimate: ${ddd.toFixed(2)}%p</div>
-            <p><strong>해석:</strong> 금리 요인을 배제한 전세사기 순수 효과로 인해 강서구 빌라의 월세 전환이 <strong>${ddd.toFixed(2)}%p</strong> 더 강력하게 발생했습니다.</p>
-        `;
-        document.getElementById('status').innerText = "✅ 분석 완료";
-    }
-</script>
-</body>
-</html>
+        const ddC = (getR('eunpyeong','villa','
