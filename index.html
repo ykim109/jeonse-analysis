@@ -2,100 +2,92 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Region DDD Analyzer</title>
+    <title>Multi-Region DDD Analysis System</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap');
-        body { font-family: 'Pretendard', sans-serif; }
-        .select-multiple { height: 80px; overflow-y: auto; }
+        body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; }
+        .select-multiple { height: 100px; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen p-4 md:p-8">
+<body class="p-4 md:p-10">
 
-<div class="max-w-5xl mx-auto">
-    <header class="text-center mb-8">
-        <h1 class="text-3xl font-extrabold text-slate-900 mb-2">🏠 다중 지역 DDD 심층 분석 시스템</h1>
-        <p class="text-slate-500 text-lg">여러 지역을 그룹화하여 전세사기의 구조적 영향력을 분석합니다.</p>
+<div class="max-w-6xl mx-auto">
+    <header class="mb-10 text-center">
+        <h1 class="text-4xl font-black text-slate-900 mb-2">📊 다중 지역 DDD 심층 분석기</h1>
+        <p class="text-slate-500">여러 지역을 그룹화하여 전세사기의 구조적 영향력을 측정합니다.</p>
     </header>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <h3 class="font-bold text-slate-800 mb-4 flex items-center">분석 그룹 설정</h3>
-            <div class="space-y-4">
-                <div class="grid grid-cols-2 gap-2">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+        <div class="bg-white p-6 rounded-3xl shadow-xl border border-slate-100">
+            <h3 class="font-bold text-lg mb-6 flex items-center text-slate-800">
+                <span class="w-2 h-6 bg-blue-600 rounded-full mr-3"></span>분석 그룹 설정
+            </h3>
+            
+            <div class="space-y-6">
+                <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="text-[10px] font-bold text-slate-400 uppercase">기준 연도</label>
-                        <select id="baseYear" class="w-full mt-1 p-2 bg-slate-50 border rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-tighter">기준 연도</label>
+                        <select id="baseYear" class="w-full mt-1 p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="2021" selected>2021년</option>
                             <option value="2022">2022년</option>
                         </select>
                     </div>
                     <div>
-                        <label class="text-[10px] font-bold text-slate-400 uppercase">비교 연도</label>
-                        <select id="targetYear" class="w-full mt-1 p-2 bg-slate-50 border rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-tighter">비교 연도</label>
+                        <select id="targetYear" class="w-full mt-1 p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="2023">2023년</option>
                             <option value="2024">2024년</option>
                             <option value="2025" selected>2025년</option>
                         </select>
                     </div>
                 </div>
+
                 <div>
-                    <label class="text-[10px] font-bold text-blue-500 uppercase">처치 지역 그룹 (Ctrl 눌러 다중 선택)</label>
-                    <select id="treatRegion" multiple class="w-full mt-1 p-2 bg-blue-50 border border-blue-200 rounded-lg text-xs outline-none select-multiple"></select>
+                    <label class="text-xs font-bold text-blue-500 uppercase tracking-tighter">처치 지역 그룹 (다중 선택)</label>
+                    <select id="treatRegion" multiple class="w-full mt-1 p-2 bg-blue-50 border border-blue-200 rounded-xl outline-none select-multiple text-sm"></select>
                 </div>
+
                 <div>
-                    <label class="text-[10px] font-bold text-slate-400 uppercase">대조 지역 그룹 (Ctrl 눌러 다중 선택)</label>
-                    <select id="controlRegion" multiple class="w-full mt-1 p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none select-multiple"></select>
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-tighter">대조 지역 그룹 (다중 선택)</label>
+                    <select id="controlRegion" multiple class="w-full mt-1 p-2 bg-slate-50 border border-slate-200 rounded-xl outline-none select-multiple text-sm"></select>
                 </div>
-                <div id="dropZone" class="border-2 border-dashed border-slate-200 rounded-2xl p-4 text-center cursor-pointer hover:border-blue-400 transition-all">
+
+                <div id="dropZone" class="border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center cursor-pointer hover:bg-white hover:border-blue-500 transition-all bg-slate-50">
                     <input type="file" id="fileInput" multiple class="hidden">
-                    <p class="font-bold text-slate-700 text-xs">CSV 파일 업로드</p>
+                    <p class="font-bold text-slate-600">CSV 파일 8개 이상 선택</p>
+                    <p class="text-[10px] text-slate-400 mt-2">지역_유형_연도.csv 형식</p>
                 </div>
             </div>
         </div>
 
-        <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-center items-center">
-            <div class="grid grid-cols-2 gap-8 w-full">
-                <div class="text-center">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-1 tracking-widest">처치 그룹 거래 총합</p>
-                    <p class="text-3xl font-black text-blue-600" id="treatTotal">0</p>
-                </div>
-                <div class="text-center">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-1 tracking-widest">대조 그룹 거래 총합</p>
-                    <p class="text-3xl font-black text-slate-700" id="controlTotal">0</p>
+        <div class="lg:col-span-2 space-y-6">
+            <div id="finalOutput" class="hidden"></div>
+            
+            <div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-100 min-h-[400px]">
+                <h3 class="font-bold text-slate-800 mb-6 flex justify-between">
+                    <span>📈 그룹별 월세 비중 변화</span>
+                    <span class="text-xs text-slate-400 font-normal">실선: 빌라 / 점선: 아파트</span>
+                </h3>
+                <div class="h-[350px]">
+                    <canvas id="trendChart"></canvas>
                 </div>
             </div>
-            <div id="statusList" class="mt-6 flex flex-wrap gap-1 justify-center max-h-24 overflow-y-auto w-full"></div>
         </div>
     </div>
 
-    <div id="finalOutput" class="hidden mb-8"></div>
-
-    <div id="chartContainer" class="hidden bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-8">
-        <h3 class="font-bold text-slate-800 mb-6 text-sm flex justify-between">
-            <span>📈 그룹 통합 월세 전환 트렌드 (Pooled Average)</span>
-            <span class="text-[10px] text-slate-400 font-normal">실선: 빌라 / 점선: 아파트</span>
-        </h3>
-        <div class="h-[350px]">
-            <canvas id="trendChart"></canvas>
-        </div>
-    </div>
-
-    <div id="tableContainer" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div id="tableContainer" class="hidden bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
+        <div class="p-6 border-b font-bold text-slate-800 bg-slate-50/50">파일별 집계 데이터</div>
         <div class="overflow-x-auto">
             <table class="w-full text-left">
-                <thead class="bg-slate-50 text-slate-500 text-[10px] uppercase tracking-widest">
+                <thead class="bg-slate-50 text-slate-400 text-[11px] uppercase tracking-widest">
                     <tr>
-                        <th class="px-6 py-3 border-b">지역/유형</th>
-                        <th class="px-6 py-3 border-b">연도</th>
-                        <th class="px-6 py-3 border-b">거래수</th>
-                        <th class="px-6 py-3 border-b">월세비중</th>
+                        <th class="px-8 py-4">지역</th><th class="px-8 py-4">유형</th><th class="px-8 py-4">연도</th><th class="px-8 py-4">거래수</th><th class="px-8 py-4">월세비중</th>
                     </tr>
                 </thead>
-                <tbody id="tableBody" class="text-xs divide-y divide-slate-100"></tbody>
+                <tbody id="tableBody" class="text-sm divide-y divide-slate-100"></tbody>
             </table>
         </div>
     </div>
@@ -120,137 +112,114 @@
     async function handleFiles(files) {
         results = {};
         regions = new Set();
-        document.getElementById('statusList').innerHTML = "";
+        const fileArray = Array.from(files);
         
-        for (const file of Array.from(files)) {
-            const parts = file.name.toLowerCase().replace('.csv', '').split('_');
+        for (const file of fileArray) {
+            const fileName = file.name.toLowerCase();
+            const parts = fileName.replace('.csv', '').split('_');
             if (parts.length < 3) continue;
+
             const [reg, typ, yr] = parts;
-            const key = `${reg}_${typ}_${yr}`;
             regions.add(reg);
 
             const text = await readFileAsText(file, "EUC-KR");
-            const lines = text.split(/\r?\n/);
-            const hIdx = lines.findIndex(l => l.includes("NO"));
-            if (hIdx === -1) continue;
-
-            Papa.parse(lines.slice(hIdx).join('\n'), {
-                header: true, skipEmptyLines: true,
-                complete: (res) => {
-                    let wolse = 0;
-                    res.data.forEach(row => {
-                        const wK = Object.keys(row).find(k => k.trim().includes('월세'));
-                        if (parseInt(String(row[wK] || "0").replace(/[^0-9]/g, '')) > 0) wolse++;
-                    });
-                    results[key] = { region: reg, type: typ, year: yr, total: res.data.length, wolse: wolse };
-                    addStatusTag(file.name);
-                    updateRegionSelects();
-                    updateView();
-                }
+            await new Promise(resolve => {
+                const lines = text.split(/\r?\n/);
+                const hIdx = lines.findIndex(l => l.includes("NO"));
+                
+                Papa.parse(lines.slice(hIdx).join('\n'), {
+                    header: true, skipEmptyLines: true,
+                    complete: (res) => {
+                        let wolse = 0;
+                        res.data.forEach(row => {
+                            const wK = Object.keys(row).find(k => k.trim().includes('월세'));
+                            if (parseInt(String(row[wK] || "0").replace(/[^0-9]/g, '')) > 0) wolse++;
+                        });
+                        results[`${reg}_${typ}_${yr}`] = { region: reg, type: typ, year: yr, total: res.data.length, wolse: wolse, ratio: (wolse/res.data.length)*100 };
+                        resolve();
+                    }
+                });
             });
         }
+        updateRegionSelects();
+        updateView();
     }
 
     function updateRegionSelects() {
         const sorted = Array.from(regions).sort();
         const html = sorted.map(r => `<option value="${r}">${r.toUpperCase()}</option>`).join('');
-        const prevT = Array.from(treatSelect.selectedOptions).map(o => o.value);
-        const prevC = Array.from(controlSelect.selectedOptions).map(o => o.value);
-        
         treatSelect.innerHTML = html;
         controlSelect.innerHTML = html;
-
-        // 기존 선택 복구
-        Array.from(treatSelect.options).forEach(o => { if(prevT.includes(o.value)) o.selected = true; });
-        Array.from(controlSelect.options).forEach(o => { if(prevC.includes(o.value)) o.selected = true; });
     }
 
     function updateView() {
+        if (Object.keys(results).length === 0) return;
         renderTable();
         renderChart();
         calculateDDD();
     }
 
-    function getPooledStats(selectedRegions, type, year) {
-        let total = 0, wolse = 0;
-        selectedRegions.forEach(reg => {
-            const data = results[`${reg}_${type}_${year}`];
-            if (data) { total += data.total; wolse += data.wolse; }
+    function getGroupStats(selRegs, type, year) {
+        let t = 0, w = 0;
+        selRegs.forEach(r => {
+            const d = results[`${r}_${type}_${year}`];
+            if(d) { t += d.total; w += d.wolse; }
         });
-        return { ratio: total > 0 ? (wolse / total) * 100 : 0, total: total };
+        return { ratio: t > 0 ? (w/t)*100 : 0 };
     }
 
     function calculateDDD() {
         const base = document.getElementById('baseYear').value;
         const target = document.getElementById('targetYear').value;
-        const tRegs = Array.from(treatSelect.selectedOptions).map(o => o.value);
-        const cRegs = Array.from(controlSelect.selectedOptions).map(o => o.value);
+        const tR = Array.from(treatSelect.selectedOptions).map(o => o.value);
+        const cR = Array.from(controlSelect.selectedOptions).map(o => o.value);
 
-        if (tRegs.length === 0 || cRegs.length === 0) return;
+        if (!tR.length || !cR.length) return;
 
-        // Pooled Ratios
-        const p = (grp, typ, yr) => getPooledStats(grp, typ, yr).ratio;
+        const p = (grp, typ, yr) => getGroupStats(grp, typ, yr).ratio;
 
-        const dTV = p(tRegs, 'villa', target) - p(tRegs, 'villa', base);
-        const dTA = p(tRegs, 'apt', target) - p(tRegs, 'apt', base);
-        const dCV = p(cRegs, 'villa', target) - p(cRegs, 'villa', base);
-        const dCA = p(cRegs, 'apt', target) - p(cRegs, 'apt', base);
-
+        const dTV = p(tR, 'villa', target) - p(tR, 'villa', base);
+        const dTA = p(tR, 'apt', target) - p(tR, 'apt', base);
+        const dCV = p(cR, 'villa', target) - p(cR, 'villa', base);
+        const dCA = p(cR, 'apt', target) - p(cR, 'apt', base);
         const ddd = (dTV - dTA) - (dCV - dCA);
-
-        document.getElementById('treatTotal').innerText = tRegs.reduce((s, r) => s + (results[`${r}_villa_${target}`]?.total || 0), 0).toLocaleString();
-        document.getElementById('controlTotal').innerText = cRegs.reduce((s, r) => s + (results[`${r}_villa_${target}`]?.total || 0), 0).toLocaleString();
 
         const out = document.getElementById('finalOutput');
         out.classList.remove('hidden');
         out.innerHTML = `
-            <div class="bg-slate-900 rounded-3xl p-8 text-white shadow-2xl">
+            <div class="bg-slate-900 rounded-[2rem] p-10 text-white shadow-2xl relative overflow-hidden">
                 <div class="flex justify-between items-center mb-8">
                     <div>
-                        <span class="bg-blue-500 text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-widest">Pooled DDD Result</span>
-                        <h2 class="text-2xl font-black mt-2">그룹간 통합 분석 결과</h2>
+                        <span class="bg-blue-600 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">Pooled DDD Estimate</span>
+                        <h2 class="text-3xl font-black mt-3">${base} ↔ ${target} 분석</h2>
                     </div>
                     <div class="text-right">
-                        <p class="text-slate-400 text-xs font-bold uppercase">DDD Estimate</p>
                         <p class="text-4xl font-black text-blue-400">${ddd.toFixed(2)}%p</p>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm mb-6">
-                    <div class="bg-white/5 p-5 rounded-2xl border border-white/10">
-                        <p class="text-blue-400 font-bold mb-3 uppercase text-[10px]">Treated Group (${tRegs.join(', ')})</p>
-                        <div class="flex justify-between"><span>빌라 변화</span><span class="font-bold text-rose-400">+${dTV.toFixed(2)}%p</span></div>
-                        <div class="flex justify-between pb-2 border-b border-white/5"><span>아파트 변화</span><span class="font-bold">+${dTA.toFixed(2)}%p</span></div>
+                <div class="grid grid-cols-2 gap-6 text-xs mb-8">
+                    <div class="bg-white/5 p-6 rounded-2xl border border-white/10">
+                        <p class="text-blue-400 font-bold mb-4 uppercase">Treatment Group (${tR.join(', ')})</p>
+                        <div class="flex justify-between mb-2"><span>빌라 변화</span><span class="font-bold text-rose-400">+${dTV.toFixed(2)}%p</span></div>
+                        <div class="flex justify-between"><span>아파트 변화</span><span class="font-bold">+${dTA.toFixed(2)}%p</span></div>
                     </div>
-                    <div class="bg-white/5 p-5 rounded-2xl border border-white/10">
-                        <p class="text-emerald-400 font-bold mb-3 uppercase text-[10px]">Control Group (${cRegs.join(', ')})</p>
-                        <div class="flex justify-between"><span>빌라 변화</span><span class="font-bold text-rose-400">+${dCV.toFixed(2)}%p</span></div>
-                        <div class="flex justify-between pb-2 border-b border-white/5"><span>아파트 변화</span><span class="font-bold">+${dCA.toFixed(2)}%p</span></div>
+                    <div class="bg-white/5 p-6 rounded-2xl border border-white/10">
+                        <p class="text-emerald-400 font-bold mb-4 uppercase">Control Group (${cR.join(', ')})</p>
+                        <div class="flex justify-between mb-2"><span>빌라 변화</span><span class="font-bold text-rose-400">+${dCV.toFixed(2)}%p</span></div>
+                        <div class="flex justify-between"><span>아파트 변화</span><span class="font-bold">+${dCA.toFixed(2)}%p</span></div>
                     </div>
-                </div>
-                <div class="bg-blue-600/10 border border-blue-500/20 p-4 rounded-xl text-xs text-slate-300 italic">
-                    "처치 지역 그룹은 아파트 대비 빌라의 월세 전환이 <strong>${(dTV - dTA).toFixed(2)}%p</strong> 더 컸으나, 대조 지역 그룹은 <strong>${(dCV - dCA).toFixed(2)}%p</strong>에 그쳤습니다. 
-                    그 차이인 <strong>${ddd.toFixed(2)}%p</strong>는 전세사기가 시장 전체에 미친 순수 충격량입니다."
                 </div>
             </div>`;
     }
 
-    function renderTable() {
-        const body = document.getElementById('tableBody');
-        document.getElementById('tableContainer').classList.remove('hidden');
-        body.innerHTML = Object.keys(results).sort().map(k => {
-            const r = results[k];
-            return `<tr><td class="px-6 py-2 font-bold capitalize">${r.region} ${r.type}</td><td class="px-6 py-2">${r.year}</td><td class="px-6 py-2">${r.total.toLocaleString()}</td><td class="px-6 py-2 font-bold text-blue-600">${r.ratio.toFixed(2)}%</td></tr>`;
-        }).join('');
-    }
-
     function renderChart() {
         const ctx = document.getElementById('trendChart').getContext('2d');
-        document.getElementById('chartContainer').classList.remove('hidden');
+        document.getElementById('chartContainer')?.classList.remove('hidden');
         const years = ['2021', '2022', '2023', '2024', '2025'];
-        const tRegs = Array.from(treatSelect.selectedOptions).map(o => o.value);
-        const cRegs = Array.from(controlSelect.selectedOptions).map(o => o.value);
+        const tR = Array.from(treatSelect.selectedOptions).map(o => o.value);
+        const cR = Array.from(controlSelect.selectedOptions).map(o => o.value);
         
-        const getP = (grp, typ) => years.map(y => getPooledStats(grp, typ, y).ratio || null);
+        const getP = (grp, typ) => years.map(y => getGroupStats(grp, typ, y).ratio || null);
 
         if (trendChart) trendChart.destroy();
         trendChart = new Chart(ctx, {
@@ -258,24 +227,32 @@
             data: {
                 labels: years,
                 datasets: [
-                    { label: '처치그룹 빌라', data: getP(tRegs, 'villa'), borderColor: '#ef4444', borderWidth: 3, tension: 0.3 },
-                    { label: '처치그룹 아파트', data: getP(tRegs, 'apt'), borderColor: '#f87171', borderDash: [5, 5], tension: 0.3 },
-                    { label: '대조그룹 빌라', data: getP(cRegs, 'villa'), borderColor: '#3b82f6', borderWidth: 3, tension: 0.3 },
-                    { label: '대조그룹 아파트', data: getP(cRegs, 'apt'), borderColor: '#60a5fa', borderDash: [5, 5], tension: 0.3 }
+                    { label: '처치그룹 빌라', data: getP(tR, 'villa'), borderColor: '#ef4444', borderWidth: 4, tension: 0.3 },
+                    { label: '처치그룹 아파트', data: getP(tR, 'apt'), borderColor: '#f87171', borderDash: [5, 5], tension: 0.3 },
+                    { label: '대조그룹 빌라', data: getP(cR, 'villa'), borderColor: '#3b82f6', borderWidth: 4, tension: 0.3 },
+                    { label: '대조그룹 아파트', data: getP(cR, 'apt'), borderColor: '#60a5fa', borderDash: [5, 5], tension: 0.3 }
                 ]
             },
             options: { responsive: true, maintainAspectRatio: false }
         });
     }
 
-    function addStatusTag(name) {
-        const span = document.createElement('span');
-        span.className = "px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-[9px] font-medium border border-emerald-200";
-        span.innerText = name;
-        document.getElementById('statusList').appendChild(span);
+    function renderTable() {
+        const body = document.getElementById('tableBody');
+        document.getElementById('tableContainer').classList.remove('hidden');
+        body.innerHTML = Object.keys(results).sort().map(k => {
+            const r = results[k];
+            return `<tr class="hover:bg-slate-50">
+                <td class="px-8 py-4 font-bold capitalize text-slate-700">${r.region}</td>
+                <td class="px-8 py-4 text-slate-500">${r.type}</td>
+                <td class="px-8 py-4 font-mono">${r.year}</td>
+                <td class="px-8 py-4">${r.total.toLocaleString()}</td>
+                <td class="px-8 py-4 font-bold text-blue-600">${r.ratio.toFixed(2)}%</td>
+            </tr>`;
+        }).join('');
     }
 
-    function readFileAsText(file, enc) { return new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsText(file, enc); }); }
+    function readFileAsText(f, enc) { return new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsText(f, enc); }); }
 </script>
 </body>
 </html>
