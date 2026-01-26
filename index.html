@@ -2,40 +2,46 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>전세사기 DDD 분석기 (강서 vs 은평)</title>
+    <title>전세사기 실거래 분석기 (강서 vs 은평)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <style>
-        body { font-family: 'Malgun Gothic', sans-serif; line-height: 1.6; padding: 20px; max-width: 1000px; margin: 0 auto; background: #f0f2f5; }
-        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-        h1 { color: #1a73e8; border-bottom: 3px solid #1a73e8; padding-bottom: 10px; }
-        .drop-zone { border: 3px dashed #1a73e8; padding: 40px; text-align: center; margin: 20px 0; border-radius: 10px; cursor: pointer; }
-        .drop-zone:hover { background: #e8f0fe; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.9em; }
+        body { font-family: 'Malgun Gothic', sans-serif; background: #f8f9fa; padding: 20px; color: #333; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        h1 { color: #1a73e8; text-align: center; }
+        .drop-zone { border: 3px dashed #1a73e8; padding: 50px; text-align: center; border-radius: 10px; cursor: pointer; margin-bottom: 20px; font-weight: bold; }
+        .file-status { background: #f1f3f4; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9em; }
+        .status-item { margin-bottom: 5px; color: #5f6368; }
+        .status-ok { color: #188038; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
         th { background: #1a73e8; color: white; }
-        .result-section { margin-top: 30px; padding: 25px; background: #e6fffa; border-left: 8px solid #38b2ac; }
-        .metric { font-size: 1.8em; font-weight: bold; color: #e53e3e; }
+        .result-card { background: #e6fffa; border-left: 10px solid #38b2ac; padding: 20px; margin-top: 30px; border-radius: 5px; }
+        .result-value { font-size: 2em; color: #e53e3e; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h1>📊 전세사기 DDD 분석기 (V3.0 - 무적 버전)</h1>
-    <p>8개의 파일을 선택하면 데이터 인코딩과 유령 문자를 자동으로 정제하여 분석합니다.</p>
+<div class="container">
+    <h1>🏠 전세사기 DDD 데이터 분석기</h1>
     
     <div class="drop-zone" id="dropZone">
-        <strong>파일 8개를 여기에 드래그하거나 클릭하세요.</strong>
+        여기를 클릭하거나 8개의 파일을 드래그하세요.
     </div>
     <input type="file" id="fileInput" multiple style="display:none">
 
-    <div id="status"></div>
+    <div class="file-status" id="fileStatus">
+        <strong>파일 로드 상태:</strong>
+        <div id="statusList">대기 중...</div>
+    </div>
+
     <div id="tableOutput"></div>
-    <div id="analysisOutput" class="result-section" style="display:none"></div>
+    <div id="finalOutput"></div>
 </div>
 
 <script>
     const fileInput = document.getElementById('fileInput');
     const dropZone = document.getElementById('dropZone');
+    const statusList = document.getElementById('statusList');
     let results = {};
 
     dropZone.onclick = () => fileInput.click();
@@ -43,59 +49,92 @@
 
     async function handleFiles(files) {
         results = {};
-        document.getElementById('status').innerText = "⏳ 정밀 분석 중...";
+        statusList.innerHTML = "";
         
         for (const file of files) {
-            const parts = file.name.replace('.csv', '').split('_');
-            if (parts.length < 3) continue;
+            const fileName = file.name;
+            const parts = fileName.replace('.csv', '').split('_');
+            
+            if (parts.length < 3) {
+                statusList.innerHTML += `<div class="status-item">⚠️ 스킵됨: ${fileName} (이름 규칙 오류)</div>`;
+                continue;
+            }
+
             const key = `${parts[0]}_${parts[1]}_${parts[2]}`;
 
-            await new Promise(resolve => {
-                Papa.parse(file, {
+            try {
+                // 1. 파일을 텍스트로 읽기 (EUC-KR 처리)
+                const text = await readFileAsText(file, "EUC-KR");
+                
+                // 2. 상단 15줄 제거 후 파싱
+                const lines = text.split(/\r?\n/);
+                const csvData = lines.slice(15).join('\n');
+
+                Papa.parse(csvData, {
                     header: true,
                     skipEmptyLines: true,
-                    encoding: "EUC-KR",
-                    beforeFirstChunk: chunk => chunk.split(/\r?\n/).slice(15).join('\n'), // 15줄 스킵
-                    complete: res => {
-                        let wolseCount = 0;
-                        const rows = res.data;
+                    complete: (res) => {
+                        let wolse = 0;
+                        const data = res.data;
 
-                        // 🔍 컬럼명 유연하게 찾기 (월세금 또는 월세 포함된 컬럼)
-                        let wolseKey = null;
-                        if (rows.length > 0) {
-                            wolseKey = Object.keys(rows[0]).find(k => k.includes('월세'));
-                        }
-
-                        rows.forEach(row => {
-                            if (!wolseKey) return;
-                            const val = String(row[wolseKey]).replace(/,/g, '').trim();
-                            if (parseInt(val) > 0) wolseCount++;
+                        data.forEach(row => {
+                            // 컬럼명 공백 제거 후 '월세금(만원)' 찾기
+                            const wolseKey = Object.keys(row).find(k => k.trim().includes('월세금'));
+                            const val = String(row[wolseKey] || "0").replace(/,/g, '');
+                            if (parseInt(val) > 0) wolse++;
                         });
 
                         results[key] = {
                             region: parts[0], type: parts[1], year: parts[2],
-                            total: rows.length, wolse: wolseCount,
-                            ratio: rows.length > 0 ? (wolseCount / rows.length) * 100 : 0
+                            total: data.length, wolse: wolse,
+                            ratio: (wolse / data.length) * 100
                         };
-                        resolve();
+                        statusList.innerHTML += `<div class="status-item status-ok">✅ 완료: ${fileName} (${data.length.toLocaleString()}건)</div>`;
+                        
+                        if (Object.keys(results).length === files.length) {
+                            render();
+                        }
                     }
                 });
-            });
+            } catch (err) {
+                statusList.innerHTML += `<div class="status-item" style="color:red">❌ 에러: ${fileName} (${err.message})</div>`;
+            }
         }
-        render();
+    }
+
+    function readFileAsText(file, encoding) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsText(file, encoding);
+        });
     }
 
     function render() {
-        let html = `<table><tr><th>지역</th><th>유형</th><th>연도</th><th>총 거래</th><th>월세 건수</th><th>월세 비중</th></tr>`;
+        let html = `<table><tr><th>지역</th><th>유형</th><th>연도</th><th>거래건수</th><th>월세비중</th></tr>`;
         Object.keys(results).sort().forEach(k => {
             const r = results[k];
-            html += `<tr><td>${r.region}</td><td>${r.type}</td><td>${r.year}</td><td>${r.total}</td><td>${r.wolse}</td><td>${r.ratio.toFixed(2)}%</td></tr>`;
+            html += `<tr><td>${r.region}</td><td>${r.type}</td><td>${r.year}</td><td>${r.total.toLocaleString()}</td><td>${r.ratio.toFixed(2)}%</td></tr>`;
         });
         document.getElementById('tableOutput').innerHTML = html + `</table>`;
-        calculateDDD();
+        
+        calculate();
     }
 
-    function calculateDDD() {
+    function calculate() {
         const getR = (reg, typ, yr) => results[`${reg}_${typ}_${yr}`]?.ratio || 0;
         const ddT = (getR('gangseo','villa','2023')-getR('gangseo','villa','2021')) - (getR('gangseo','apt','2023')-getR('gangseo','apt','2021'));
-        const ddC = (getR('eunpyeong','villa','
+        const ddC = (getR('eunpyeong','villa','2023')-getR('eunpyeong','villa','2021')) - (getR('eunpyeong','apt','2023')-getR('eunpyeong','apt','2021'));
+        const ddd = ddT - ddC;
+
+        document.getElementById('finalOutput').innerHTML = `
+            <div class="result-card">
+                <h2>📊 삼중차분(DDD) 분석 결과</h2>
+                <div class="result-value">DDD Estimate: ${ddd.toFixed(2)}%p</div>
+                <p>강서구 빌라의 월세 전환 속도가 타 지역/유형 대비 <strong>${ddd.toFixed(2)}%p</strong> 더 가파릅니다.</p>
+            </div>`;
+    }
+</script>
+</body>
+</html>
