@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>전세사기 DDD 분석기 (강서 vs 은평)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <style>
+        body { font-family: 'Malgun Gothic', sans-serif; line-height: 1.6; padding: 20px; max-width: 1000px; margin: 0 auto; background: #f0f2f5; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        h1 { color: #1a73e8; border-bottom: 3px solid #1a73e8; padding-bottom: 10px; }
+        .drop-zone { border: 3px dashed #1a73e8; padding: 40px; text-align: center; margin: 20px 0; border-radius: 10px; cursor: pointer; transition: 0.3s; }
+        .drop-zone:hover { background: #e8f0fe; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.9em; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        th { background: #1a73e8; color: white; }
+        .result-section { margin-top: 30px; padding: 25px; background: #e6fffa; border-left: 8px solid #38b2ac; border-radius: 4px; }
+        .metric { font-size: 1.5em; font-weight: bold; color: #e53e3e; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h1>📊 전세사기 삼중차분법(DDD) 분석</h1>
+    <p>파일명을 <code>지역_유형_연도.csv</code> 형식으로 맞춘 후 8개 파일을 한꺼번에 올리세요.</p>
+    <div class="drop-zone" id="dropZone">CSV 파일 8개를 드래그하거나 클릭하여 선택</div>
+    <input type="file" id="fileInput" multiple style="display:none">
+    <div id="tableOutput"></div>
+    <div id="analysisOutput" class="result-section" style="display:none"></div>
+</div>
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const dropZone = document.getElementById('dropZone');
+    let results = {};
+
+    dropZone.onclick = () => fileInput.click();
+    fileInput.onchange = (e) => handleFiles(e.target.files);
+
+    async function handleFiles(files) {
+        results = {};
+        for (const file of files) {
+            await new Promise(resolve => {
+                const parts = file.name.replace('.csv', '').split('_');
+                Papa.parse(file, {
+                    header: true, skipEmptyLines: true,
+                    beforeFirstChunk: chunk => chunk.split('\n').slice(15).join('\n'), // 15줄 스킵
+                    complete: res => {
+                        let wolse = 0;
+                        res.data.forEach(r => {
+                            const val = String(r['월세금(만원)'] || "0").replace(/,/g, '');
+                            if (parseInt(val) > 0) wolse++;
+                        });
+                        results[`${parts[0]}_${parts[1]}_${parts[2]}`] = {
+                            region: parts[0], type: parts[1], year: parts[2],
+                            ratio: (wolse / res.data.length) * 100
+                        };
+                        resolve();
+                    }
+                });
+            });
+        }
+        render();
+    }
+
+    function render() {
+        let html = `<table><tr><th>지역</th><th>유형</th><th>연도</th><th>월세 비중</th></tr>`;
+        Object.keys(results).sort().forEach(k => {
+            const r = results[k];
+            html += `<tr><td>${r.region}</td><td>${r.type}</td><td>${r.year}</td><td>${r.ratio.toFixed(2)}%</td></tr>`;
+        });
+        html += `</table>`;
+        document.getElementById('tableOutput').innerHTML = html;
+        calculate();
+    }
+
+    function calculate() {
+        const getR = (reg, typ, yr) => results[`${reg}_${typ}_${yr}`]?.ratio || 0;
+        const ddT = (getR('gangseo','villa','2023')-getR('gangseo','villa','2021')) - (getR('gangseo','apt','2023')-getR('gangseo','apt','2021'));
+        const ddC = (getR('eunpyeong','villa','2023')-getR('eunpyeong','villa','2021')) - (getR('eunpyeong','apt','2023')-getR('eunpyeong','apt','2021'));
+        const ddd = ddT - ddC;
+        const out = document.getElementById('analysisOutput');
+        out.style.display = 'block';
+        out.innerHTML = `<h2>🎯 DDD 결과: ${ddd.toFixed(2)}%p</h2><p>이 수치가 양수라면 사기 지역 빌라의 월세 전환이 더 뚜렷함을 의미합니다.</p>`;
+    }
+</script>
+</body>
+</html>
