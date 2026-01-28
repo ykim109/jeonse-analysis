@@ -3,236 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>전세사기 시계열 DDD 분석기</title>
+    <title>전세사기 심층 DDD 분석기 (Academic Edition)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap');
         body { font-family: 'Pretendard', sans-serif; }
-        .drop-zone { transition: all 0.3s ease; }
-        .drop-zone.dragover { border-color: #3b82f6; background-color: #eff6ff; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen p-4 md:p-8">
 
 <div class="max-w-5xl mx-auto">
     <header class="text-center mb-8">
-        <h1 class="text-3xl font-extrabold text-slate-900 mb-2">🏠 전세사기 시계열 DDD 분석 시스템</h1>
-        <p class="text-slate-500 text-lg">2021-2025 실거래 기반 월세 전환 트렌드 분석</p>
+        <h1 class="text-3xl font-extrabold text-slate-900 mb-2">🏠 전세사기 심층 분석 시스템</h1>
+        <p class="text-slate-500 text-lg">기초 DDD 분석 + 시장 변동성 및 가격 메커니즘 분석</p>
     </header>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <h3 class="font-bold text-slate-800 mb-4 flex items-center">분석 설정</h3>
+            <h3 class="font-bold text-slate-800 mb-4">분석 설정</h3>
             <div class="space-y-4">
                 <div>
-                    <label class="text-xs font-semibold text-slate-400 uppercase">기준 연도 (Base)</label>
-                    <select id="baseYear" class="w-full mt-1 p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none">
+                    <label class="text-xs font-semibold text-slate-400 uppercase">기준 연도</label>
+                    <select id="baseYear" class="w-full mt-1 p-2 bg-slate-50 border rounded-lg outline-none">
                         <option value="2021" selected>2021년</option>
                         <option value="2022">2022년</option>
                     </select>
                 </div>
                 <div>
-                    <label class="text-xs font-semibold text-slate-400 uppercase">비교 연도 (Target)</label>
-                    <select id="targetYear" class="w-full mt-1 p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none">
+                    <label class="text-xs font-semibold text-slate-400 uppercase">비교 연도</label>
+                    <select id="targetYear" class="w-full mt-1 p-2 bg-slate-50 border rounded-lg outline-none">
                         <option value="2023">2023년</option>
                         <option value="2024">2024년</option>
                         <option value="2025" selected>2025년</option>
                     </select>
                 </div>
-                <div id="dropZone" class="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center cursor-pointer hover:border-blue-400 drop-zone">
+                <div id="dropZone" class="border-2 border-dashed p-4 rounded-xl text-center cursor-pointer hover:bg-blue-50">
                     <input type="file" id="fileInput" multiple class="hidden">
-                    <p class="font-bold text-slate-700 text-sm">CSV 파일 업로드</p>
-                    <p class="text-slate-400 text-[10px] mt-1">지역_유형_연도.csv 형식</p>
+                    <p class="text-sm font-bold text-blue-600">CSV 파일 업로드</p>
                 </div>
             </div>
         </div>
 
-        <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-center items-center text-center">
-            <h3 class="text-slate-400 text-sm font-bold uppercase mb-2">데이터 로드 현황</h3>
-            <div class="flex items-center gap-4">
-                <div class="text-5xl font-black text-blue-600" id="fileCount">0</div>
-                <div class="text-left">
-                    <p class="text-slate-800 font-bold">개의 파일 분석됨</p>
-                    <p class="text-slate-400 text-xs">최소 4개 이상 업로드 시 분석 시작</p>
+        <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <h3 class="font-bold text-slate-800 mb-4 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-rose-500" fill="currentColor" viewBox="0 0 20 20"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"></path></svg>
+                학술적 인사이트 (Market Analysis)
+            </h3>
+            <div id="insightPanel" class="grid grid-cols-2 gap-4">
+                <div class="p-4 bg-slate-50 rounded-xl">
+                    <p class="text-xs text-slate-400 font-bold uppercase">빌라 변동성 (CV)</p>
+                    <p id="villaVol" class="text-2xl font-black text-slate-700">-</p>
+                    <p class="text-[10px] text-slate-400 mt-1">* 높을수록 시장 불안정</p>
+                </div>
+                <div class="p-4 bg-slate-50 rounded-xl">
+                    <p class="text-xs text-slate-400 font-bold uppercase">아파트 변동성 (CV)</p>
+                    <p id="aptVol" class="text-2xl font-black text-slate-700">-</p>
+                    <p class="text-[10px] text-slate-400 mt-1">* 0에 가까울수록 안정적</p>
                 </div>
             </div>
-            <div id="statusList" class="mt-4 flex flex-wrap gap-1 justify-center"></div>
         </div>
+    </div>
+
+    <div id="chartContainer" class="hidden bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-8">
+        <canvas id="trendChart" class="h-[300px]"></canvas>
     </div>
 
     <div id="finalOutput" class="hidden mb-8"></div>
-
-    <div id="chartContainer" class="hidden bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-8">
-        <h3 class="font-bold text-slate-800 mb-6">📈 그룹별 월세 비중 변화 (2021-2025)</h3>
-        <div class="h-[350px]">
-            <canvas id="trendChart"></canvas>
-        </div>
-    </div>
-
-    <div id="tableContainer" class="hidden bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-200">
-        <div class="p-4 border-b bg-slate-50 font-bold text-slate-700 text-sm">상세 거래 데이터 집계</div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left">
-                <thead>
-                    <tr class="bg-slate-50 text-slate-500 text-[10px] uppercase tracking-widest">
-                        <th class="px-6 py-3 border-b text-center">지역/유형</th>
-                        <th class="px-6 py-3 border-b text-center">연도</th>
-                        <th class="px-6 py-3 border-b text-center">총 거래</th>
-                        <th class="px-6 py-3 border-b text-center">월세 비중</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody" class="text-sm divide-y divide-slate-100"></tbody>
-            </table>
-        </div>
+    <div id="tableContainer" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <table class="w-full text-left">
+            <thead class="bg-slate-50 text-xs text-slate-500 uppercase">
+                <tr><th class="px-6 py-3">지역/유형</th><th class="px-6 py-3">연도</th><th class="px-6 py-3">월세비중</th><th class="px-6 py-3">평균보증금</th><th class="px-6 py-3">평균월세</th></tr>
+            </thead>
+            <tbody id="tableBody" class="text-sm divide-y"></tbody>
+        </table>
     </div>
 </div>
 
 <script>
     const fileInput = document.getElementById('fileInput');
     const dropZone = document.getElementById('dropZone');
-    const statusList = document.getElementById('statusList');
-    const fileCountSpan = document.getElementById('fileCount');
     let results = {};
     let trendChart = null;
 
     dropZone.onclick = () => fileInput.click();
     fileInput.onchange = (e) => handleFiles(e.target.files);
 
-    // 드래그 앤 드롭 방지
-    window.addEventListener("dragover", e => e.preventDefault());
-    window.addEventListener("drop", e => e.preventDefault());
-    dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add('bg-blue-50', 'border-blue-400'); };
-    dropZone.ondragleave = () => dropZone.classList.remove('bg-blue-50', 'border-blue-400');
-    dropZone.ondrop = (e) => {
-        e.preventDefault();
-        dropZone.classList.remove('bg-blue-50', 'border-blue-400');
-        handleFiles(e.dataTransfer.files);
-    };
-
-    document.getElementById('baseYear').onchange = updateView;
-    document.getElementById('targetYear').onchange = updateView;
-
     async function handleFiles(files) {
         results = {};
-        statusList.innerHTML = "";
         for (const file of Array.from(files)) {
-            const fileName = file.name.toLowerCase();
-            const parts = fileName.replace('.csv', '').split('_');
+            const parts = file.name.toLowerCase().replace('.csv', '').split('_');
             if (parts.length < 3) continue;
-            
             const key = `${parts[0]}_${parts[1]}_${parts[2]}`;
             const text = await readFileAsText(file, "EUC-KR");
-            
-            // 데이터 시작점("NO") 찾기 로직
-            const lines = text.split(/\r?\n/);
-            const headerIdx = lines.findIndex(l => l.includes("NO"));
-            if (headerIdx === -1) continue;
-
-            Papa.parse(lines.slice(headerIdx).join('\n'), {
-                header: true, skipEmptyLines: true,
-                complete: (res) => {
-                    let wolse = 0;
-                    res.data.forEach(row => {
-                        const wKey = Object.keys(row).find(k => k.trim().includes('월세'));
-                        const val = parseInt(String(row[wKey] || "0").replace(/[^0-9]/g, ''));
-                        if (val > 0) wolse++;
-                    });
-                    results[key] = {
-                        region: parts[0], type: parts[1], year: parts[2],
-                        ratio: (wolse / res.data.length) * 100, total: res.data.length
-                    };
-                    addStatusTag(fileName);
-                    updateView();
-                }
-            });
+            parseAndProcess(text, key, parts);
         }
     }
 
-    function updateView() {
-        const count = Object.keys(results).length;
-        fileCountSpan.innerText = count;
-        if (count > 0) { renderTable(); renderChart(); }
-        if (count >= 4) calculateDDD();
+    function parseAndProcess(text, key, parts) {
+        const lines = text.split(/\r?\n/).slice(15).join('\n');
+        Papa.parse(lines, {
+            header: true,
+            skipEmptyLines: true,
+            complete: (res) => {
+                let wolseCount = 0;
+                let sumDeposit = 0, sumRent = 0;
+                
+                res.data.forEach(row => {
+                    const depositKey = Object.keys(row).find(k => k.includes('보증금'));
+                    const rentKey = Object.keys(row).find(k => k.includes('월세금'));
+                    const dep = parseInt(String(row[depositKey] || "0").replace(/[^0-9]/g, '')) || 0;
+                    const rent = parseInt(String(row[rentKey] || "0").replace(/[^0-9]/g, '')) || 0;
+
+                    sumDeposit += dep;
+                    sumRent += rent;
+                    if (rent > 0) wolseCount++;
+                });
+
+                results[key] = {
+                    region: parts[0], type: parts[1], year: parts[2],
+                    ratio: (wolseCount / res.data.length) * 100,
+                    avgDep: sumDeposit / res.data.length,
+                    avgRent: sumRent / res.data.length
+                };
+                updateUI();
+            }
+        });
+    }
+
+    function updateUI() {
+        renderTable();
+        renderChart();
+        if (Object.keys(results).length >= 4) {
+            calculateDDD();
+            calculateVariability(); // 추가된 변동성 계산
+        }
+    }
+
+    // 📈 시장 변동성(CV) 계산 함수
+    function calculateVariability() {
+        const years = ['2021', '2022', '2023', '2024', '2025'];
+        
+        const getCV = (type) => {
+            const values = years.map(y => (results[`gangseo_${type}_${y}`]?.ratio || results[`eunpyeong_${type}_${y}`]?.ratio)).filter(v => v);
+            if (values.length < 2) return null;
+            const mean = values.reduce((a, b) => a + b) / values.length;
+            const std = Math.sqrt(values.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / values.length);
+            return (std / mean).toFixed(3);
+        };
+
+        const vVol = getCV('villa');
+        const aVol = getCV('apt');
+        document.getElementById('villaVol').innerText = vVol || '-';
+        document.getElementById('aptVol').innerText = aVol || '-';
     }
 
     function calculateDDD() {
         const base = document.getElementById('baseYear').value;
         const target = document.getElementById('targetYear').value;
         const getR = (r, t, y) => results[`${r}_${t}_${y}`]?.ratio || 0;
-
-        // 1. 개별 변화량 계산
-        const diff_GV = getR('gangseo','villa',target) - getR('gangseo','villa',base);
-        const diff_GA = getR('gangseo','apt',target) - getR('gangseo','apt',base);
-        const diff_EV = getR('eunpyeong','villa',target) - getR('eunpyeong','villa',base);
-        const diff_EA = getR('eunpyeong','apt',target) - getR('eunpyeong','apt',base);
-
-        // 2. 이중차분 및 삼중차분
-        const ddT = diff_GV - diff_GA;
-        const ddC = diff_EV - diff_EA;
+        
+        const ddT = (getR('gangseo','villa',target)-getR('gangseo', 'villa', base)) - (getR('gangseo','apt',target)-getR('gangseo','apt',base));
+        const ddC = (getR('eunpyeong','villa',target)-getR('eunpyeong','villa',base)) - (getR('eunpyeong','apt',target)-getR('eunpyeong','apt',base));
         const ddd = ddT - ddC;
 
-        const output = document.getElementById('finalOutput');
-        output.classList.remove('hidden');
-        output.innerHTML = `
-            <div class="bg-slate-900 rounded-3xl p-8 text-white shadow-2xl overflow-hidden relative">
-                <div class="relative z-10">
-                    <div class="flex justify-between items-center mb-8">
-                        <div>
-                            <span class="bg-blue-500 text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-widest">Time-Series DDD Analysis</span>
-                            <h2 class="text-2xl font-black mt-2">${base} vs ${target} 분석 결과</h2>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-slate-400 text-xs font-bold uppercase">DDD Estimate</p>
-                            <p class="text-4xl font-black text-blue-400">${ddd.toFixed(2)}%p</p>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                        <div class="bg-white/5 p-6 rounded-2xl border border-white/10">
-                            <p class="text-blue-400 font-bold mb-4 flex items-center"><span class="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>강서구 (실험군)</p>
-                            <div class="space-y-3">
-                                <div class="flex justify-between items-center">
-                                    <span class="text-slate-400 text-sm">빌라 월세 전환</span>
-                                    <span class="font-bold text-lg text-rose-400">+${diff_GV.toFixed(2)}%p</span>
-                                </div>
-                                <div class="flex justify-between items-center pb-2 border-b border-white/10">
-                                    <span class="text-slate-400 text-sm">아파트 월세 전환</span>
-                                    <span class="font-bold text-lg text-slate-200">+${diff_GA.toFixed(2)}%p</span>
-                                </div>
-                                <div class="text-right pt-2 text-xs font-bold text-white uppercase tracking-tighter">
-                                    빌라-아파트 격차(DD): ${ddT.toFixed(2)}%p
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="bg-white/5 p-6 rounded-2xl border border-white/10">
-                            <p class="text-emerald-400 font-bold mb-4 flex items-center"><span class="w-2 h-2 bg-emerald-400 rounded-full mr-2"></span>은평구 (대조군)</p>
-                            <div class="space-y-3">
-                                <div class="flex justify-between items-center">
-                                    <span class="text-slate-400 text-sm">빌라 월세 전환</span>
-                                    <span class="font-bold text-lg text-rose-400">+${diff_EV.toFixed(2)}%p</span>
-                                </div>
-                                <div class="flex justify-between items-center pb-2 border-b border-white/10">
-                                    <span class="text-slate-400 text-sm">아파트 월세 전환</span>
-                                    <span class="font-bold text-lg text-slate-200">+${diff_EA.toFixed(2)}%p</span>
-                                </div>
-                                <div class="text-right pt-2 text-xs font-bold text-white uppercase tracking-tighter">
-                                    빌라-아파트 격차(DD): ${ddC.toFixed(2)}%p
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-blue-600/10 border border-blue-500/20 p-5 rounded-2xl">
-                        <p class="text-slate-300 leading-relaxed italic text-sm">
-                            "${base}년부터 ${target}년까지 강서구에서 아파트가 <strong>${diff_GA.toFixed(2)}%p</strong> 변하는 동안 빌라는 <strong>${diff_GV.toFixed(2)}%p</strong>나 급증했습니다. 
-                            이는 은평구의 빌라-아파트 격차(${ddC.toFixed(2)}%p) 대비 <strong>${ddd.toFixed(2)}%p</strong> 높은 수치로, 
-                            전세사기 위험이 특정 지역 빌라 시장의 <strong>구조적 이탈</strong>을 가속화했음을 증명합니다."
-                        </p>
-                    </div>
-                </div>
+        const out = document.getElementById('finalOutput');
+        out.classList.remove('hidden');
+        out.innerHTML = `
+            <div class="bg-slate-900 rounded-2xl p-6 text-white shadow-xl">
+                <h3 class="text-xl font-bold mb-2">최종 DDD Estimate: <span class="text-blue-400">${ddd.toFixed(2)}%p</span></h3>
+                <p class="text-slate-400 text-sm">해당 수치는 금리 등 외부 요인을 제거한 전세사기의 순수 시장 충격량입니다.</p>
             </div>`;
     }
 
@@ -241,18 +182,20 @@
         document.getElementById('tableContainer').classList.remove('hidden');
         body.innerHTML = Object.keys(results).sort().map(k => {
             const r = results[k];
-            return `<tr class="hover:bg-slate-50 transition-colors">
-                <td class="px-6 py-3 font-semibold text-slate-700 capitalize text-center">${r.region} ${r.type}</td>
-                <td class="px-6 py-3 font-mono text-slate-500 text-center">${r.year}</td>
-                <td class="px-6 py-3 text-slate-600 text-center">${r.total.toLocaleString()}건</td>
-                <td class="px-6 py-3 font-bold text-center ${r.ratio > 30 ? 'text-rose-500' : 'text-blue-500'}">${r.ratio.toFixed(2)}%</td>
+            return `<tr class="hover:bg-slate-50">
+                <td class="px-6 py-3 font-bold">${r.region}_${r.type}</td>
+                <td class="px-6 py-3">${r.year}</td>
+                <td class="px-6 py-3 text-blue-600 font-bold">${r.ratio.toFixed(2)}%</td>
+                <td class="px-6 py-3">${Math.round(r.avgDep).toLocaleString()}만원</td>
+                <td class="px-6 py-3">${Math.round(r.avgRent).toLocaleString()}만원</td>
             </tr>`;
         }).join('');
     }
 
+    // Chart.js 렌더링 (기존 로직 유지)
     function renderChart() {
-        const ctx = document.getElementById('trendChart').getContext('2d');
         document.getElementById('chartContainer').classList.remove('hidden');
+        const ctx = document.getElementById('trendChart').getContext('2d');
         const years = ['2021', '2022', '2023', '2024', '2025'];
         const getS = (reg, typ) => years.map(y => results[`${reg}_${typ}_${y}`]?.ratio || null);
 
@@ -262,21 +205,12 @@
             data: {
                 labels: years,
                 datasets: [
-                    { label: '강서 빌라', data: getS('gangseo', 'villa'), borderColor: '#ef4444', backgroundColor: '#ef4444', borderWidth: 3, tension: 0.3 },
-                    { label: '강서 아파트', data: getS('gangseo', 'apt'), borderColor: '#f87171', borderDash: [5, 5], tension: 0.3 },
-                    { label: '은평 빌라', data: getS('eunpyeong', 'villa'), borderColor: '#3b82f6', backgroundColor: '#3b82f6', borderWidth: 3, tension: 0.3 },
-                    { label: '은평 아파트', data: getS('eunpyeong', 'apt'), borderColor: '#60a5fa', borderDash: [5, 5], tension: 0.3 }
+                    { label: '강서 빌라', data: getS('gangseo', 'villa'), borderColor: '#ef4444', borderWidth: 3 },
+                    { label: '은평 빌라', data: getS('eunpyeong', 'villa'), borderColor: '#3b82f6', borderWidth: 3 }
                 ]
             },
-            options: { responsive: true, maintainAspectRatio: false }
+            options: { maintainAspectRatio: false }
         });
-    }
-
-    function addStatusTag(name) {
-        const span = document.createElement('span');
-        span.className = "px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-[9px] font-medium border border-emerald-200";
-        span.innerText = name;
-        statusList.appendChild(span);
     }
 
     function readFileAsText(file, encoding) {
