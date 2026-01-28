@@ -10,6 +10,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap');
         body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; }
         .select-multiple { height: 120px; }
+        #debugLog { background: #1e1e1e; color: #00ff00; font-family: monospace; font-size: 11px; padding: 10px; border-radius: 8px; max-height: 150px; overflow-y: auto; }
     </style>
 </head>
 <body class="p-4 md:p-10">
@@ -17,69 +18,62 @@
 <div class="max-w-6xl mx-auto">
     <header class="mb-10 text-center">
         <h1 class="text-4xl font-black text-slate-900 mb-2">📊 전세사기 심층 DDD 분석 시스템</h1>
-        <p class="text-slate-500">여러 지역을 그룹화하여 주택 유형별(빌라 vs 아파트) 구조적 변화를 분석합니다.</p>
+        <p class="text-slate-500">인코딩 및 컬럼 자동 보정 기능이 탑재된 연구용 버전입니다.</p>
     </header>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
         <div class="bg-white p-6 rounded-3xl shadow-xl border border-slate-100">
-            <h3 class="font-bold text-lg mb-6 flex items-center text-slate-800">
-                <span class="w-2 h-6 bg-blue-600 rounded-full mr-3"></span>분석 설정
-            </h3>
-            
-            <div class="space-y-6">
+            <h3 class="font-bold text-lg mb-6 flex items-center text-slate-800">분석 설정</h3>
+            <div class="space-y-4">
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="text-xs font-bold text-slate-400 uppercase">기준 연도</label>
-                        <select id="baseYear" class="w-full mt-1 p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                        <select id="baseYear" class="w-full mt-1 p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none">
                             <option value="2021" selected>2021년</option>
                             <option value="2022">2022년</option>
                         </select>
                     </div>
                     <div>
                         <label class="text-xs font-bold text-slate-400 uppercase">비교 연도</label>
-                        <select id="targetYear" class="w-full mt-1 p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                        <select id="targetYear" class="w-full mt-1 p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none">
                             <option value="2023">2023년</option>
                             <option value="2024">2024년</option>
                             <option value="2025" selected>2025년</option>
                         </select>
                     </div>
                 </div>
-
                 <div>
-                    <label class="text-xs font-bold text-blue-500 uppercase tracking-tighter">처치 지역 그룹 (다중 선택: Ctrl/Cmd)</label>
+                    <label class="text-xs font-bold text-blue-500 uppercase">처치 지역 그룹 (Ctrl+클릭)</label>
                     <select id="treatRegion" multiple class="w-full mt-1 p-2 bg-blue-50 border border-blue-200 rounded-xl outline-none select-multiple text-sm"></select>
                 </div>
-
                 <div>
-                    <label class="text-xs font-bold text-slate-400 uppercase tracking-tighter">대조 지역 그룹 (다중 선택: Ctrl/Cmd)</label>
+                    <label class="text-xs font-bold text-slate-400 uppercase">대조 지역 그룹 (Ctrl+클릭)</label>
                     <select id="controlRegion" multiple class="w-full mt-1 p-2 bg-slate-50 border border-slate-200 rounded-xl outline-none select-multiple text-sm"></select>
                 </div>
-
                 <div id="dropZone" class="border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center cursor-pointer hover:bg-white hover:border-blue-500 transition-all bg-slate-50">
                     <input type="file" id="fileInput" multiple class="hidden">
-                    <p class="font-bold text-slate-600">CSV 파일 8개 이상 업로드</p>
-                    <p class="text-[10px] text-slate-400 mt-2">지역_유형_연도.csv 형식</p>
+                    <p class="font-bold text-slate-600">파일 8개를 드래그하세요</p>
                 </div>
+            </div>
+            <div class="mt-6">
+                <h4 class="text-xs font-bold text-slate-400 uppercase mb-2">실시간 분석 로그</h4>
+                <div id="debugLog">대기 중...</div>
             </div>
         </div>
 
         <div class="lg:col-span-2 space-y-6">
             <div id="finalOutput" class="hidden"></div>
-            
             <div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-100 min-h-[400px]">
                 <h3 class="font-bold text-slate-800 mb-6 flex justify-between">
-                    <span>📈 그룹별 통합 월세 비중 추이</span>
+                    <span>📈 그룹별 월세 비중 추이</span>
                     <span class="text-xs text-slate-400 font-normal">실선: 빌라 / 점선: 아파트</span>
                 </h3>
-                <div class="h-[350px]">
-                    <canvas id="trendChart"></canvas>
-                </div>
+                <div class="h-[350px]"><canvas id="trendChart"></canvas></div>
             </div>
         </div>
     </div>
 
     <div id="tableContainer" class="hidden bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
-        <div class="p-6 border-b font-bold text-slate-800 bg-slate-50/50">파일별 세부 데이터</div>
         <div class="overflow-x-auto">
             <table class="w-full text-left">
                 <thead class="bg-slate-50 text-slate-400 text-[11px] uppercase tracking-widest text-center">
@@ -96,67 +90,74 @@
     const dropZone = document.getElementById('dropZone');
     const treatSelect = document.getElementById('treatRegion');
     const controlSelect = document.getElementById('controlRegion');
-    let results = {};
-    let regions = new Set();
-    let trendChart = null;
+    const debugLog = document.getElementById('debugLog');
+    let results = {}; let regions = new Set(); let trendChart = null;
+
+    function log(msg) { debugLog.innerHTML += `<div>> ${msg}</div>`; debugLog.scrollTop = debugLog.scrollHeight; }
 
     dropZone.onclick = () => fileInput.click();
     fileInput.onchange = (e) => handleFiles(e.target.files);
 
-    [treatSelect, controlSelect, document.getElementById('baseYear'), document.getElementById('targetYear')].forEach(el => {
-        el.onchange = updateView;
-    });
+    [treatSelect, controlSelect, document.getElementById('baseYear'), document.getElementById('targetYear')].forEach(el => el.onchange = updateView);
 
     async function handleFiles(files) {
-        results = {}; regions = new Set();
+        results = {}; regions = new Set(); debugLog.innerHTML = "";
         const fileArray = Array.from(files);
-        
+        log(`${fileArray.length}개 파일 처리 시작...`);
+
         for (const file of fileArray) {
             const fileName = file.name.toLowerCase();
             const parts = fileName.replace('.csv', '').split('_');
-            if (parts.length < 3) continue;
-            const [reg, typ, yr] = parts;
-            regions.add(reg);
+            if (parts.length < 3) { log(`파일명 오류: ${fileName}`); continue; }
+            const [reg, typ, yr] = parts; regions.add(reg);
 
-            // 1. EUC-KR 인코딩 강제 해독
-            const buffer = await file.arrayBuffer();
-            const decoder = new TextDecoder('euc-kr');
-            const text = decoder.decode(buffer);
+            // 1. 인코딩 자동 감지 시도 (UTF-8 우선, 실패 시 EUC-KR)
+            let text;
+            try {
+                const buffer = await file.arrayBuffer();
+                const utf8Text = new TextDecoder('utf-8').decode(buffer);
+                // "시군구"라는 글자가 포함되어 있으면 UTF-8로 간주
+                text = utf8Text.includes('시군구') ? utf8Text : new TextDecoder('euc-kr').decode(buffer);
+            } catch (e) {
+                log(`디코딩 실패: ${fileName}`); continue;
+            }
 
-            // 2. 데이터 시작점("NO") 찾기
             const lines = text.split(/\r?\n/);
             const hIdx = lines.findIndex(l => l.includes("NO"));
-            if (hIdx === -1) continue;
+            if (hIdx === -1) { log(`헤더 못 찾음: ${fileName}`); continue; }
 
             await new Promise(resolve => {
                 Papa.parse(lines.slice(hIdx).join('\n'), {
                     header: true, skipEmptyLines: true,
                     complete: (res) => {
-                        let wolse = 0;
-                        res.data.forEach(row => {
-                            // "월세금"이 포함된 모든 컬럼 검색
-                            const wKey = Object.keys(row).find(k => k.trim().includes('월세금'));
-                            const val = parseInt(String(row[wKey] || "0").replace(/[^0-9]/g, ''));
-                            if (val > 0) wolse++;
+                        let wolse = 0; const data = res.data;
+                        const wKey = Object.keys(data[0] || {}).find(k => k.trim().replace(/["']/g, '').includes('월세'));
+                        
+                        if (!wKey) { log(`월세 컬럼 없음: ${fileName}`); }
+                        
+                        data.forEach(row => {
+                            const val = String(row[wKey] || "0").replace(/[^0-9]/g, '');
+                            if (parseInt(val) > 0) wolse++;
                         });
-                        results[`${reg}_${typ}_${yr}`] = { region: reg, type: typ, year: yr, total: res.data.length, wolse: wolse, ratio: (wolse/res.data.length)*100 };
+
+                        results[`${reg}_${typ}_${yr}`] = { region: reg, type: typ, year: yr, total: data.length, wolse: wolse, ratio: (wolse/data.length)*100 };
+                        log(`${fileName} 로드 완료 (${data.length}건, 월세 ${wolse}건)`);
                         resolve();
                     }
                 });
             });
         }
-        updateRegionSelects();
-        updateView();
+        updateRegionSelects(); updateView();
     }
 
     function updateRegionSelects() {
         const sorted = Array.from(regions).sort();
-        const currentT = Array.from(treatSelect.selectedOptions).map(o => o.value);
-        const currentC = Array.from(controlSelect.selectedOptions).map(o => o.value);
         const html = sorted.map(r => `<option value="${r}">${r.toUpperCase()}</option>`).join('');
+        const prevT = Array.from(treatSelect.selectedOptions).map(o => o.value);
+        const prevC = Array.from(controlSelect.selectedOptions).map(o => o.value);
         treatSelect.innerHTML = html; controlSelect.innerHTML = html;
-        Array.from(treatSelect.options).forEach(o => { if(currentT.includes(o.value)) o.selected = true; });
-        Array.from(controlSelect.options).forEach(o => { if(currentC.includes(o.value)) o.selected = true; });
+        Array.from(treatSelect.options).forEach(o => { if(prevT.includes(o.value)) o.selected = true; });
+        Array.from(controlSelect.options).forEach(o => { if(prevC.includes(o.value)) o.selected = true; });
     }
 
     function updateView() {
@@ -166,10 +167,7 @@
 
     function getGroupStats(selRegs, type, year) {
         let t = 0, w = 0;
-        selRegs.forEach(r => {
-            const d = results[`${r}_${type}_${year}`];
-            if(d) { t += d.total; w += d.wolse; }
-        });
+        selRegs.forEach(r => { const d = results[`${r}_${type}_${year}`]; if(d) { t += d.total; w += d.wolse; } });
         return { ratio: t > 0 ? (w/t)*100 : 0 };
     }
 
@@ -181,7 +179,6 @@
         if (!tR.length || !cR.length) return;
 
         const p = (grp, typ, yr) => getGroupStats(grp, typ, yr).ratio;
-
         const dTV = p(tR, 'villa', target) - p(tR, 'villa', base);
         const dTA = p(tR, 'apt', target) - p(tR, 'apt', base);
         const dCV = p(cR, 'villa', target) - p(cR, 'villa', base);
@@ -192,79 +189,54 @@
         out.classList.remove('hidden');
         out.innerHTML = `
             <div class="bg-slate-900 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden">
-                <div class="flex justify-between items-center mb-10">
+                <div class="flex justify-between items-center mb-8">
                     <div>
                         <span class="bg-blue-600 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest text-white">Pooled DDD Analysis</span>
                         <h2 class="text-3xl font-black mt-3">${base} ↔ ${target} 분석</h2>
                     </div>
                     <div class="text-right">
-                        <p class="text-slate-400 text-xs font-bold uppercase">DDD Estimate</p>
+                        <p class="text-slate-400 text-xs font-bold uppercase tracking-widest">DDD Estimate</p>
                         <p class="text-5xl font-black text-blue-400">${ddd.toFixed(2)}%p</p>
                     </div>
                 </div>
-
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                     <div class="bg-white/5 p-8 rounded-3xl border border-white/10">
-                        <p class="text-blue-400 font-bold mb-6 flex items-center capitalize"><span class="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>처치 그룹 (${tR.join(', ')})</p>
-                        <div class="space-y-4">
-                            <div class="flex justify-between items-center"><span class="text-slate-400">빌라 변화</span><span class="font-bold text-xl text-rose-400">+${dTV.toFixed(2)}%p</span></div>
-                            <div class="flex justify-between items-center pb-4 border-b border-white/10"><span class="text-slate-400">아파트 변화</span><span class="font-bold text-xl">+${dTA.toFixed(2)}%p</span></div>
-                            <div class="text-right pt-2 text-xs font-bold text-white">그룹 내 격차(DD): ${(dTV - dTA).toFixed(2)}%p</div>
-                        </div>
+                        <p class="text-blue-400 font-bold mb-4 flex items-center capitalize"><span class="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>처치 그룹 (${tR.join(', ')})</p>
+                        <div class="flex justify-between items-center mb-2"><span class="text-slate-400">빌라 변화</span><span class="font-bold text-rose-400">+${dTV.toFixed(2)}%p</span></div>
+                        <div class="flex justify-between items-center pb-2 border-b border-white/5"><span class="text-slate-400">아파트 변화</span><span class="font-bold">+${dTA.toFixed(2)}%p</span></div>
+                        <div class="text-right mt-2 text-[10px] font-bold">내부 격차(DD): ${(dTV - dTA).toFixed(2)}%p</div>
                     </div>
                     <div class="bg-white/5 p-8 rounded-3xl border border-white/10">
-                        <p class="text-emerald-400 font-bold mb-6 flex items-center capitalize"><span class="w-2 h-2 bg-emerald-400 rounded-full mr-2"></span>대조 그룹 (${cR.join(', ')})</p>
-                        <div class="space-y-4">
-                            <div class="flex justify-between items-center"><span class="text-slate-400">빌라 변화</span><span class="font-bold text-xl text-rose-400">+${dCV.toFixed(2)}%p</span></div>
-                            <div class="flex justify-between items-center pb-4 border-b border-white/10"><span class="text-slate-400">아파트 변화</span><span class="font-bold text-xl">+${dCA.toFixed(2)}%p</span></div>
-                            <div class="text-right pt-2 text-xs font-bold text-white">그룹 내 격차(DD): ${(dCV - dCA).toFixed(2)}%p</div>
-                        </div>
+                        <p class="text-emerald-400 font-bold mb-4 flex items-center capitalize"><span class="w-2 h-2 bg-emerald-400 rounded-full mr-2"></span>대조 그룹 (${cR.join(', ')})</p>
+                        <div class="flex justify-between items-center mb-2"><span class="text-slate-400">빌라 변화</span><span class="font-bold text-rose-400">+${dCV.toFixed(2)}%p</span></div>
+                        <div class="flex justify-between items-center pb-2 border-b border-white/5"><span class="text-slate-400">아파트 변화</span><span class="font-bold">+${dCA.toFixed(2)}%p</span></div>
+                        <div class="text-right mt-2 text-[10px] font-bold">내부 격차(DD): ${(dCV - dCA).toFixed(2)}%p</div>
                     </div>
-                </div>
-
-                <div class="bg-blue-600/10 border border-blue-500/20 p-6 rounded-2xl text-slate-300 text-sm italic leading-relaxed">
-                    "처치 그룹에서 아파트 월세 비중이 <strong>${dTA.toFixed(2)}%p</strong> 변하는 동안, 빌라는 <strong>${dTV.toFixed(2)}%p</strong>나 급증했습니다. 
-                    이는 대조 그룹의 격차 대비 <strong>${ddd.toFixed(2)}%p</strong> 높은 수치로, 전세사기 여파의 <strong>구조적 이탈</strong>을 증명합니다."
                 </div>
             </div>`;
     }
 
     function renderTable() {
-        const body = document.getElementById('tableBody');
-        document.getElementById('tableContainer').classList.remove('hidden');
+        const body = document.getElementById('tableBody'); document.getElementById('tableContainer').classList.remove('hidden');
         body.innerHTML = Object.keys(results).sort().map(k => {
             const r = results[k];
-            return `<tr class="hover:bg-slate-50 transition-colors">
-                <td class="px-8 py-4 font-bold capitalize text-slate-700">${r.region}</td>
-                <td class="px-8 py-4 text-slate-500 capitalize">${r.type}</td>
-                <td class="px-8 py-4 font-mono text-slate-400">${r.year}</td>
-                <td class="px-8 py-4 text-slate-600">${r.total.toLocaleString()}</td>
-                <td class="px-8 py-4 font-bold text-blue-600">${r.ratio.toFixed(2)}%</td>
-            </tr>`;
+            return `<tr class="hover:bg-slate-50 transition-colors"><td class="px-8 py-4 font-bold capitalize text-slate-700">${r.region}</td><td class="px-8 py-4 text-slate-500 capitalize">${r.type}</td><td class="px-8 py-4 font-mono text-slate-400">${r.year}</td><td class="px-8 py-4 text-slate-600">${r.total.toLocaleString()}</td><td class="px-8 py-4 font-bold text-blue-600">${r.ratio.toFixed(2)}%</td></tr>`;
         }).join('');
     }
 
     function renderChart() {
-        const ctx = document.getElementById('trendChart').getContext('2d');
-        document.getElementById('chartContainer')?.classList.remove('hidden');
+        const ctx = document.getElementById('trendChart').getContext('2d'); document.getElementById('chartContainer')?.classList.remove('hidden');
         const years = ['2021', '2022', '2023', '2024', '2025'];
         const tR = Array.from(treatSelect.selectedOptions).map(o => o.value);
         const cR = Array.from(controlSelect.selectedOptions).map(o => o.value);
         const getP = (grp, typ) => years.map(y => getGroupStats(grp, typ, y).ratio || null);
         if (trendChart) trendChart.destroy();
-        trendChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: years,
-                datasets: [
-                    { label: '처치그룹 빌라', data: getP(tR, 'villa'), borderColor: '#ef4444', borderWidth: 4, tension: 0.3 },
-                    { label: '처치그룹 아파트', data: getP(tR, 'apt'), borderColor: '#f87171', borderDash: [5, 5], tension: 0.3 },
-                    { label: '대조그룹 빌라', data: getP(cR, 'villa'), borderColor: '#3b82f6', borderWidth: 4, tension: 0.3 },
-                    { label: '대조그룹 아파트', data: getP(cR, 'apt'), borderColor: '#60a5fa', borderDash: [5, 5], tension: 0.3 }
-                ]
-            },
-            options: { responsive: true, maintainAspectRatio: false }
-        });
+        trendChart = new Chart(ctx, { type: 'line', data: { labels: years, datasets: [
+            { label: '처치그룹 빌라', data: getP(tR, 'villa'), borderColor: '#ef4444', borderWidth: 4, tension: 0.3 },
+            { label: '처치그룹 아파트', data: getP(tR, 'apt'), borderColor: '#f87171', borderDash: [5, 5], tension: 0.3 },
+            { label: '대조그룹 빌라', data: getP(cR, 'villa'), borderColor: '#3b82f6', borderWidth: 4, tension: 0.3 },
+            { label: '대조그룹 아파트', data: getP(cR, 'apt'), borderColor: '#60a5fa', borderDash: [5, 5], tension: 0.3 }
+        ]}, options: { responsive: true, maintainAspectRatio: false } });
     }
 </script>
 </body>
