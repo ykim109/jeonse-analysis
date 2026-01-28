@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Housing Market DDD Analyzer | Structural Shift Analysis</title>
+    <title>Housing Market DDD Analyzer | Academic Presentation</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -15,18 +15,18 @@
         .select-multiple::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
-<body class="p-4 md:p-10">
+<body class="p-4 md:p-10 text-slate-900">
 
 <div class="max-w-7xl mx-auto">
     <header class="text-center mb-12">
         <h1 class="text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">🏠 Housing Market Structural Shift Analyzer</h1>
-        <p class="text-slate-500 text-lg">Measuring the Impact of Jeonse Fraud on Monthly Rent Transition via Triple Difference (DDD)</p>
+        <p class="text-slate-500 text-lg">Investigating the Impact of Jeonse Fraud via Pooled Triple Difference (DDD)</p>
     </header>
 
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-12">
         <div class="lg:col-span-1 bg-white p-6 rounded-3xl shadow-xl border border-slate-100 space-y-6">
             <h3 class="font-bold text-slate-800 flex items-center text-sm uppercase tracking-wider">
-                <span class="w-2 h-6 bg-blue-600 rounded-full mr-3"></span>Analysis Config
+                <span class="w-2 h-6 bg-blue-600 rounded-full mr-3"></span>Config
             </h3>
             
             <div class="space-y-5">
@@ -49,20 +49,20 @@
                 </div>
 
                 <div>
-                    <label class="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Treatment Group (Affected)</label>
+                    <label class="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Treatment Group (T)</label>
                     <select id="treatRegion" multiple class="w-full mt-1 p-2 bg-blue-50 border border-blue-100 rounded-xl outline-none select-multiple text-xs font-bold text-blue-800"></select>
-                    <p class="text-[9px] text-slate-400 mt-1">Hold Ctrl/Cmd for multi-select</p>
+                    <p class="text-[9px] text-slate-400 mt-1 italic">Select regions affected by fraud</p>
                 </div>
 
                 <div>
-                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Control Group (Comparative)</label>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Control Group (C)</label>
                     <select id="controlRegion" multiple class="w-full mt-1 p-2 bg-slate-50 border border-slate-200 rounded-xl outline-none select-multiple text-xs font-semibold text-slate-600"></select>
                 </div>
 
                 <div id="dropZone" class="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center cursor-pointer hover:bg-white hover:border-blue-500 transition-all bg-slate-50">
                     <input type="file" id="fileInput" multiple class="hidden">
                     <p class="font-bold text-slate-700 text-xs uppercase">Upload CSV Files</p>
-                    <p class="text-[9px] text-slate-400 mt-1">Format: region_type_year.csv</p>
+                    <p class="text-[9px] text-slate-400 mt-1">Batch upload all your files here</p>
                 </div>
             </div>
         </div>
@@ -70,19 +70,25 @@
         <div class="lg:col-span-3 space-y-8">
             <div id="finalOutput" class="hidden"></div>
             
-            <div class="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100 min-h-[420px]">
-                <div class="flex justify-between items-center mb-10">
-                    <h3 class="font-bold text-slate-800 tracking-tight">📈 Pooled Proportion of Monthly Rent Trend</h3>
-                    <div id="loadStatus" class="text-[10px] font-bold text-emerald-600 px-3 py-1 bg-emerald-50 rounded-full uppercase tracking-widest italic">Standby...</div>
+            <div class="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100 min-h-[450px]">
+                <div class="flex justify-between items-center mb-8">
+                    <h3 class="font-bold text-slate-800 tracking-tight">📈 Pooled Proportions of Monthly Rent Trend</h3>
+                    <div id="loadStatus" class="text-[10px] font-bold text-emerald-600 px-3 py-1 bg-emerald-50 rounded-full uppercase italic">Ready</div>
                 </div>
                 <div class="h-[350px]"><canvas id="trendChart"></canvas></div>
-                <p class="mt-4 text-[10px] text-slate-400 text-center uppercase tracking-widest font-bold">Solid: Villa / Dashed: Apartment</p>
+                
+                <div class="mt-6 flex justify-center items-center gap-8 border-t pt-4">
+                    <div class="flex items-center gap-2"><span class="w-4 h-1 bg-[#ef4444]"></span><span class="text-[10px] font-bold text-slate-600 uppercase">T-Villa (Solid)</span></div>
+                    <div class="flex items-center gap-2 border-r pr-8"><span class="w-4 h-1 border-b-2 border-dashed border-[#ef4444]"></span><span class="text-[10px] text-slate-400 uppercase font-bold">T-Apartment (Dashed)</span></div>
+                    <div class="flex items-center gap-2"><span class="w-4 h-1 bg-[#3b82f6]"></span><span class="text-[10px] font-bold text-slate-600 uppercase">C-Villa (Solid)</span></div>
+                    <div class="flex items-center gap-2"><span class="w-4 h-1 border-b-2 border-dashed border-[#3b82f6]"></span><span class="text-[10px] text-slate-400 uppercase font-bold">C-Apartment (Dashed)</span></div>
+                </div>
             </div>
         </div>
     </div>
 
     <div id="tableContainer" class="hidden bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden mb-12">
-        <div class="p-6 border-b font-extrabold text-slate-800 bg-slate-50/50 uppercase tracking-tighter text-sm">Processed Dataset Summary</div>
+        <div class="p-6 border-b font-extrabold text-slate-800 bg-slate-50/50 uppercase tracking-tighter text-sm">Aggregated Data Summary</div>
         <div class="overflow-x-auto">
             <table class="w-full text-center">
                 <thead class="bg-slate-50 text-slate-400 text-[10px] uppercase tracking-[0.2em]">
@@ -90,7 +96,7 @@
                         <th class="px-8 py-5">Region</th>
                         <th class="px-8 py-5">Type</th>
                         <th class="px-8 py-5">Year</th>
-                        <th class="px-8 py-5">Total Vol.</th>
+                        <th class="px-8 py-5">Total Count</th>
                         <th class="px-8 py-5">Monthly Rent %</th>
                     </tr>
                 </thead>
@@ -120,7 +126,7 @@
 
     async function handleFiles(files) {
         const fileArray = Array.from(files);
-        loadStatus.innerText = "Analyzing Datasets...";
+        loadStatus.innerText = "Analyzing...";
         
         for (const file of fileArray) {
             const fileName = file.name.toLowerCase();
@@ -130,7 +136,7 @@
             const [reg, typ, yr] = parts;
             regions.add(reg);
 
-            // Robust Encoding Guard
+            // 🔍 Smart Encoding Guard: UTF-8 & EUC-KR
             const buffer = await file.arrayBuffer();
             let text = new TextDecoder('utf-8').decode(buffer);
             if (!text.includes('시군구')) { text = new TextDecoder('euc-kr').decode(buffer); }
@@ -162,29 +168,26 @@
                 });
             });
         }
-        loadStatus.innerText = `READY: ${Object.keys(results).length} FILES LOADED`;
+        loadStatus.innerText = `READY: ${Object.keys(results).length} FILES`;
         updateRegionSelects();
         updateView();
-    }
-
-    async function readSmartText(file) {
-        const buffer = await file.arrayBuffer();
-        const decoderUTF8 = new TextDecoder('utf-8');
-        const decoderEUCKR = new TextDecoder('euc-kr');
-        let decoded = decoderUTF8.decode(buffer);
-        if (!decoded.includes('시군구')) { decoded = decoderEUCKR.decode(buffer); }
-        return decoded;
     }
 
     function updateRegionSelects() {
         const sorted = Array.from(regions).sort();
         const prevT = Array.from(treatSelect.selectedOptions).map(o => o.value);
         const prevC = Array.from(controlSelect.selectedOptions).map(o => o.value);
+        
         const html = sorted.map(r => `<option value="${r}">${r.toUpperCase()}</option>`).join('');
         treatSelect.innerHTML = html;
         controlSelect.innerHTML = html;
-        Array.from(treatSelect.options).forEach(o => { if(prevT.includes(o.value) || (prevT.length === 0 && o.value === 'gangseo')) o.selected = true; });
-        Array.from(controlSelect.options).forEach(o => { if(prevC.includes(o.value) || (prevC.length === 0 && o.value === 'eunpyeong')) o.selected = true; });
+
+        Array.from(treatSelect.options).forEach(o => {
+            if (prevT.includes(o.value) || (prevT.length === 0 && o.value === 'gangseo')) o.selected = true;
+        });
+        Array.from(controlSelect.options).forEach(o => {
+            if (prevC.includes(o.value) || (prevC.length === 0 && o.value === 'eunpyeong')) o.selected = true;
+        });
     }
 
     function updateView() {
@@ -205,6 +208,7 @@
         const target = document.getElementById('targetYear').value;
         const tR = Array.from(treatSelect.selectedOptions).map(o => o.value);
         const cR = Array.from(controlSelect.selectedOptions).map(o => o.value);
+
         if (!tR.length || !cR.length) return;
 
         const p = (grp, typ, yr) => getGroupStats(grp, typ, yr).ratio;
@@ -221,43 +225,31 @@
             <div class="bg-slate-900 rounded-[3rem] p-10 text-white shadow-2xl relative overflow-hidden">
                 <div class="flex justify-between items-center mb-10">
                     <div>
-                        <span class="bg-blue-600 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest text-white">Pooled DDD Estimate</span>
-                        <h2 class="text-2xl font-black mt-3">${base} vs ${target} Analysis</h2>
+                        <span class="bg-blue-600 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest text-white tracking-[0.2em]">DDD Estimate</span>
+                        <h2 class="text-2xl font-black mt-3">${base} ↔ ${target} Comparative Analysis</h2>
                     </div>
                     <div class="text-right">
-                        <p class="text-slate-400 text-xs font-bold uppercase tracking-widest">DDD Estimate</p>
                         <p class="text-5xl font-black text-blue-400 tracking-tighter">${ddd.toFixed(2)}%p</p>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                     <div class="bg-white/5 p-8 rounded-[2rem] border border-white/10">
-                        <p class="text-blue-400 font-bold mb-6 flex items-center text-xs uppercase tracking-widest">
-                            <span class="w-2 h-2 bg-blue-400 rounded-full mr-3"></span>Treatment Group
-                        </p>
+                        <p class="text-blue-400 font-bold mb-6 flex items-center text-xs uppercase tracking-widest"><span class="w-2 h-2 bg-blue-400 rounded-full mr-3"></span>Treatment Group</p>
                         <div class="space-y-4">
-                            <div class="flex justify-between items-center"><span class="text-slate-400 text-sm italic">Villa Shift</span><span class="font-extrabold text-xl text-rose-400">+${dTV.toFixed(2)}%p</span></div>
-                            <div class="flex justify-between items-center pb-4 border-b border-white/10"><span class="text-slate-400 text-sm italic">Apartment Shift</span><span class="font-extrabold text-xl">+${dTA.toFixed(2)}%p</span></div>
-                            <div class="text-right pt-2 text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Internal Gap (DD): ${(dTV - dTA).toFixed(2)}%p</div>
+                            <div class="flex justify-between items-center"><span class="text-slate-400 text-sm">Villa Shift</span><span class="font-bold text-xl text-rose-400">+${dTV.toFixed(2)}%p</span></div>
+                            <div class="flex justify-between items-center pb-4 border-b border-white/10"><span class="text-slate-400 text-sm">Apartment Shift</span><span class="font-bold text-xl">${dTA >= 0 ? '+' : ''}${dTA.toFixed(2)}%p</span></div>
+                            <div class="text-right pt-2 text-[10px] font-bold text-slate-500 uppercase">Internal Gap (DD): ${(dTV - dTA).toFixed(2)}%p</div>
                         </div>
                     </div>
                     <div class="bg-white/5 p-8 rounded-[2rem] border border-white/10">
-                        <p class="text-emerald-400 font-bold mb-6 flex items-center text-xs uppercase tracking-widest">
-                            <span class="w-2 h-2 bg-emerald-400 rounded-full mr-3"></span>Control Group
-                        </p>
+                        <p class="text-emerald-400 font-bold mb-6 flex items-center text-xs uppercase tracking-widest"><span class="w-2 h-2 bg-emerald-400 rounded-full mr-3"></span>Control Group</p>
                         <div class="space-y-4">
-                            <div class="flex justify-between items-center"><span class="text-slate-400 text-sm italic">Villa Shift</span><span class="font-extrabold text-xl text-rose-400">+${dCV.toFixed(2)}%p</span></div>
-                            <div class="flex justify-between items-center pb-4 border-b border-white/10"><span class="text-slate-400 text-sm italic">Apartment Shift</span><span class="font-extrabold text-xl">+${dCA.toFixed(2)}%p</span></div>
-                            <div class="text-right pt-2 text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Internal Gap (DD): ${(dCV - dCA).toFixed(2)}%p</div>
+                            <div class="flex justify-between items-center"><span class="text-slate-400 text-sm">Villa Shift</span><span class="font-bold text-xl text-rose-400">+${dCV.toFixed(2)}%p</span></div>
+                            <div class="flex justify-between items-center pb-4 border-b border-white/10"><span class="text-slate-400 text-sm">Apartment Shift</span><span class="font-bold text-xl">${dCA >= 0 ? '+' : ''}${dCA.toFixed(2)}%p</span></div>
+                            <div class="text-right pt-2 text-[10px] font-bold text-slate-500 uppercase">Internal Gap (DD): ${(dCV - dCA).toFixed(2)}%p</div>
                         </div>
                     </div>
-                </div>
-
-                <div class="bg-blue-600/10 border border-blue-500/20 p-6 rounded-2xl">
-                    <p class="text-slate-300 leading-relaxed italic text-sm text-center">
-                        "While the apartment market shifted by <strong>${dTA.toFixed(2)}%p</strong>, the villa market in treated regions experienced a drastic surge of <strong>${dTV.toFixed(2)}%p</strong>. 
-                        The resulting <strong>${ddd.toFixed(2)}%p</strong> DDD estimate indicates a significant <strong>structural monthly rent transition</strong> driven by market risks."
-                    </p>
                 </div>
             </div>`;
     }
@@ -290,17 +282,17 @@
             data: {
                 labels: years,
                 datasets: [
-                    { label: 'Treated (Villa)', data: getP(tR, 'villa'), borderColor: '#ef4444', backgroundColor: '#ef4444', borderWidth: 4, tension: 0.3, pointRadius: 4 },
-                    { label: 'Treated (Apartment)', data: getP(tR, 'apt'), borderColor: '#ef4444', borderDash: [6, 4], borderWidth: 2, tension: 0.3, pointRadius: 0 },
-                    { label: 'Control (Villa)', data: getP(cR, 'villa'), borderColor: '#3b82f6', backgroundColor: '#3b82f6', borderWidth: 4, tension: 0.3, pointRadius: 4 },
-                    { label: 'Control (Apartment)', data: getP(cR, 'apt'), borderColor: '#3b82f6', borderDash: [6, 4], borderWidth: 2, tension: 0.3, pointRadius: 0 }
+                    { label: 'Treated (Villa)', data: getP(tR, 'villa'), borderColor: '#ef4444', backgroundColor: '#ef4444', borderWidth: 5, tension: 0.3, pointRadius: 6, pointStyle: 'circle' },
+                    { label: 'Treated (Apartment)', data: getP(tR, 'apt'), borderColor: '#ef4444', borderDash: [8, 4], borderWidth: 3, tension: 0.3, pointRadius: 6, pointStyle: 'rectRot' },
+                    { label: 'Control (Villa)', data: getP(cR, 'villa'), borderColor: '#3b82f6', backgroundColor: '#3b82f6', borderWidth: 5, tension: 0.3, pointRadius: 6, pointStyle: 'circle' },
+                    { label: 'Control (Apartment)', data: getP(cR, 'apt'), borderColor: '#3b82f6', borderDash: [8, 4], borderWidth: 3, tension: 0.3, pointRadius: 6, pointStyle: 'rectRot' }
                 ]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { position: 'bottom', labels: { boxWidth: 20, font: { size: 11, weight: '600' }, usePointStyle: false } } },
+                plugins: { legend: { display: false } }, // Custom legend at bottom used instead
                 scales: { 
-                    y: { beginAtZero: false, ticks: { callback: value => value + '%' } },
+                    y: { ticks: { callback: v => v + '%' }, grid: { color: '#f1f5f9' } },
                     x: { grid: { display: false } }
                 }
             }
