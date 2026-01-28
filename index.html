@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>범용 전세사기 DDD 분석기</title>
+    <title>전세사기 시계열 DDD 분석기</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -18,90 +18,69 @@
 
 <div class="max-w-5xl mx-auto">
     <header class="text-center mb-8">
-        <h1 class="text-3xl font-extrabold text-slate-900 mb-2">🏠 범용 시계열 DDD 분석 시스템</h1>
-        <p class="text-slate-500 text-lg">파일명에서 지역을 자동 추출하여 비교 분석합니다.</p>
+        <h1 class="text-3xl font-extrabold text-slate-900 mb-2">🏠 전세사기 시계열 DDD 분석 시스템</h1>
+        <p class="text-slate-500 text-lg">2021-2025 실거래 기반 월세 전환 트렌드 분석</p>
     </header>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
             <h3 class="font-bold text-slate-800 mb-4 flex items-center">분석 설정</h3>
             <div class="space-y-4">
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-400 uppercase">기준 연도</label>
-                        <select id="baseYear" class="w-full mt-1 p-2 bg-slate-50 border rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="2021" selected>2021년</option>
-                            <option value="2022">2022년</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-400 uppercase">비교 연도</label>
-                        <select id="targetYear" class="w-full mt-1 p-2 bg-slate-50 border rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="2023">2023년</option>
-                            <option value="2024">2024년</option>
-                            <option value="2025" selected>2025년</option>
-                        </select>
-                    </div>
-                </div>
                 <div>
-                    <label class="text-[10px] font-bold text-slate-400 uppercase">처치 지역 (Treatment)</label>
-                    <select id="treatRegion" class="w-full mt-1 p-2 bg-blue-50 border border-blue-200 rounded-lg text-xs font-bold text-blue-700 outline-none">
-                        <option value="">파일을 먼저 업로드하세요</option>
+                    <label class="text-xs font-semibold text-slate-400 uppercase">기준 연도 (Base)</label>
+                    <select id="baseYear" class="w-full mt-1 p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none">
+                        <option value="2021" selected>2021년</option>
+                        <option value="2022">2022년</option>
                     </select>
                 </div>
                 <div>
-                    <label class="text-[10px] font-bold text-slate-400 uppercase">대조 지역 (Control)</label>
-                    <select id="controlRegion" class="w-full mt-1 p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 outline-none">
-                        <option value="">파일을 먼저 업로드하세요</option>
+                    <label class="text-xs font-semibold text-slate-400 uppercase">비교 연도 (Target)</label>
+                    <select id="targetYear" class="w-full mt-1 p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none">
+                        <option value="2023">2023년</option>
+                        <option value="2024">2024년</option>
+                        <option value="2025" selected>2025년</option>
                     </select>
                 </div>
-                <div id="dropZone" class="border-2 border-dashed border-slate-200 rounded-2xl p-4 text-center cursor-pointer hover:border-blue-400 drop-zone">
+                <div id="dropZone" class="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center cursor-pointer hover:border-blue-400 drop-zone">
                     <input type="file" id="fileInput" multiple class="hidden">
-                    <p class="font-bold text-slate-700 text-xs">CSV 파일 업로드</p>
-                    <p class="text-slate-400 text-[9px] mt-1">지역_유형_연도.csv</p>
+                    <p class="font-bold text-slate-700 text-sm">CSV 파일 업로드</p>
+                    <p class="text-slate-400 text-[10px] mt-1">지역_유형_연도.csv 형식</p>
                 </div>
             </div>
         </div>
 
-        <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-center items-center">
-            <h3 class="text-slate-400 text-xs font-bold uppercase mb-2 tracking-widest">분석 데이터 요약</h3>
-            <div class="flex items-center gap-6">
-                <div class="text-center">
-                    <p class="text-4xl font-black text-blue-600" id="regionCount">0</p>
-                    <p class="text-slate-500 text-[10px] font-bold">감지된 지역</p>
-                </div>
-                <div class="w-px h-10 bg-slate-100"></div>
-                <div class="text-center">
-                    <p class="text-4xl font-black text-slate-700" id="fileCount">0</p>
-                    <p class="text-slate-500 text-[10px] font-bold">총 분석 파일</p>
+        <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-center items-center text-center">
+            <h3 class="text-slate-400 text-sm font-bold uppercase mb-2">데이터 로드 현황</h3>
+            <div class="flex items-center gap-4">
+                <div class="text-5xl font-black text-blue-600" id="fileCount">0</div>
+                <div class="text-left">
+                    <p class="text-slate-800 font-bold">개의 파일 분석됨</p>
+                    <p class="text-slate-400 text-xs">최소 4개 이상 업로드 시 분석 시작</p>
                 </div>
             </div>
-            <div id="statusList" class="mt-6 flex flex-wrap gap-1 justify-center max-h-20 overflow-y-auto"></div>
+            <div id="statusList" class="mt-4 flex flex-wrap gap-1 justify-center"></div>
         </div>
     </div>
 
     <div id="finalOutput" class="hidden mb-8"></div>
 
     <div id="chartContainer" class="hidden bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-8">
-        <h3 class="font-bold text-slate-800 mb-6 flex justify-between items-center text-sm">
-            <span>📈 선택 지역 월세 전환 트렌드</span>
-            <span class="text-[10px] text-slate-400 font-normal">* 실선: 빌라 / 점선: 아파트</span>
-        </h3>
-        <div class="h-[300px]">
+        <h3 class="font-bold text-slate-800 mb-6">📈 그룹별 월세 비중 변화 (2021-2025)</h3>
+        <div class="h-[350px]">
             <canvas id="trendChart"></canvas>
         </div>
     </div>
 
-    <div id="tableContainer" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div id="tableContainer" class="hidden bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-200">
+        <div class="p-4 border-b bg-slate-50 font-bold text-slate-700 text-sm">상세 거래 데이터 집계</div>
         <div class="overflow-x-auto">
             <table class="w-full text-left">
-                <thead class="bg-slate-50 text-slate-500 text-[10px] uppercase tracking-widest">
-                    <tr>
-                        <th class="px-6 py-3 border-b">지역</th>
-                        <th class="px-6 py-3 border-b">유형</th>
-                        <th class="px-6 py-3 border-b">연도</th>
-                        <th class="px-6 py-3 border-b">거래건수</th>
-                        <th class="px-6 py-3 border-b">월세비중</th>
+                <thead>
+                    <tr class="bg-slate-50 text-slate-500 text-[10px] uppercase tracking-widest">
+                        <th class="px-6 py-3 border-b text-center">지역/유형</th>
+                        <th class="px-6 py-3 border-b text-center">연도</th>
+                        <th class="px-6 py-3 border-b text-center">총 거래</th>
+                        <th class="px-6 py-3 border-b text-center">월세 비중</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody" class="text-sm divide-y divide-slate-100"></tbody>
@@ -114,36 +93,39 @@
     const fileInput = document.getElementById('fileInput');
     const dropZone = document.getElementById('dropZone');
     const statusList = document.getElementById('statusList');
-    const treatSelect = document.getElementById('treatRegion');
-    const controlSelect = document.getElementById('controlRegion');
-    
+    const fileCountSpan = document.getElementById('fileCount');
     let results = {};
-    let regions = new Set();
     let trendChart = null;
 
     dropZone.onclick = () => fileInput.click();
     fileInput.onchange = (e) => handleFiles(e.target.files);
 
-    // 지역 선택이나 연도 선택이 바뀌면 즉시 분석 업데이트
-    [treatSelect, controlSelect, document.getElementById('baseYear'), document.getElementById('targetYear')].forEach(el => {
-        el.onchange = updateView;
-    });
+    // 드래그 앤 드롭 방지
+    window.addEventListener("dragover", e => e.preventDefault());
+    window.addEventListener("drop", e => e.preventDefault());
+    dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add('bg-blue-50', 'border-blue-400'); };
+    dropZone.ondragleave = () => dropZone.classList.remove('bg-blue-50', 'border-blue-400');
+    dropZone.ondrop = (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('bg-blue-50', 'border-blue-400');
+        handleFiles(e.dataTransfer.files);
+    };
+
+    document.getElementById('baseYear').onchange = updateView;
+    document.getElementById('targetYear').onchange = updateView;
 
     async function handleFiles(files) {
         results = {};
-        regions = new Set();
         statusList.innerHTML = "";
-        
         for (const file of Array.from(files)) {
             const fileName = file.name.toLowerCase();
             const parts = fileName.replace('.csv', '').split('_');
             if (parts.length < 3) continue;
-
-            const [reg, typ, yr] = parts;
-            const key = `${reg}_${typ}_${yr}`;
-            regions.add(reg);
-
+            
+            const key = `${parts[0]}_${parts[1]}_${parts[2]}`;
             const text = await readFileAsText(file, "EUC-KR");
+            
+            // 데이터 시작점("NO") 찾기 로직
             const lines = text.split(/\r?\n/);
             const headerIdx = lines.findIndex(l => l.includes("NO"));
             if (headerIdx === -1) continue;
@@ -157,37 +139,20 @@
                         const val = parseInt(String(row[wKey] || "0").replace(/[^0-9]/g, ''));
                         if (val > 0) wolse++;
                     });
-                    results[key] = { region: reg, type: typ, year: yr, ratio: (wolse / res.data.length) * 100, total: res.data.length };
+                    results[key] = {
+                        region: parts[0], type: parts[1], year: parts[2],
+                        ratio: (wolse / res.data.length) * 100, total: res.data.length
+                    };
                     addStatusTag(fileName);
-                    updateRegionSelects();
                     updateView();
                 }
             });
         }
     }
 
-    function updateRegionSelects() {
-        const sortedRegions = Array.from(regions).sort();
-        const currentTreat = treatSelect.value;
-        const currentControl = controlSelect.value;
-
-        const options = sortedRegions.map(r => `<option value="${r}">${r.toUpperCase()}</option>`).join('');
-        treatSelect.innerHTML = options;
-        controlSelect.innerHTML = options;
-
-        // 기존 선택값 유지 로직 (없으면 기본값 설정)
-        if (sortedRegions.includes(currentTreat)) treatSelect.value = currentTreat;
-        else if (sortedRegions.includes('gangseo')) treatSelect.value = 'gangseo';
-
-        if (sortedRegions.includes(currentControl)) controlSelect.value = currentControl;
-        else if (sortedRegions.includes('eunpyeong')) controlSelect.value = 'eunpyeong';
-        else if (sortedRegions.length > 1 && treatSelect.value === sortedRegions[0]) controlSelect.value = sortedRegions[1];
-    }
-
     function updateView() {
         const count = Object.keys(results).length;
-        document.getElementById('fileCount').innerText = count;
-        document.getElementById('regionCount').innerText = regions.size;
+        fileCountSpan.innerText = count;
         if (count > 0) { renderTable(); renderChart(); }
         if (count >= 4) calculateDDD();
     }
@@ -195,59 +160,78 @@
     function calculateDDD() {
         const base = document.getElementById('baseYear').value;
         const target = document.getElementById('targetYear').value;
-        const tReg = treatSelect.value;
-        const cReg = controlSelect.value;
-
-        if (tReg === cReg) {
-            document.getElementById('finalOutput').innerHTML = `<p class="text-center text-slate-400 text-sm">처치 지역과 대조 지역을 다르게 선택해 주세요.</p>`;
-            return;
-        }
-
         const getR = (r, t, y) => results[`${r}_${t}_${y}`]?.ratio || 0;
 
-        const diff_TV = getR(tReg,'villa',target) - getR(tReg,'villa',base);
-        const diff_TA = getR(tReg,'apt',target) - getR(tReg,'apt',base);
-        const diff_CV = getR(cReg,'villa',target) - getR(cReg,'villa',base);
-        const diff_CA = getR(cReg,'apt',target) - getR(cReg,'apt',base);
+        // 1. 개별 변화량 계산
+        const diff_GV = getR('gangseo','villa',target) - getR('gangseo','villa',base);
+        const diff_GA = getR('gangseo','apt',target) - getR('gangseo','apt',base);
+        const diff_EV = getR('eunpyeong','villa',target) - getR('eunpyeong','villa',base);
+        const diff_EA = getR('eunpyeong','apt',target) - getR('eunpyeong','apt',base);
 
-        const ddT = diff_TV - diff_TA;
-        const ddC = diff_CV - diff_CA;
+        // 2. 이중차분 및 삼중차분
+        const ddT = diff_GV - diff_GA;
+        const ddC = diff_EV - diff_EA;
         const ddd = ddT - ddC;
 
-        const out = document.getElementById('finalOutput');
-        out.classList.remove('hidden');
-        out.innerHTML = `
-            <div class="bg-slate-900 rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden">
-                <div class="flex justify-between items-center mb-8">
-                    <div>
-                        <span class="bg-blue-500 text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-widest text-white">Advanced DDD Analysis</span>
-                        <h2 class="text-2xl font-black mt-2">${tReg.toUpperCase()} vs ${cReg.toUpperCase()}</h2>
-                        <p class="text-slate-400 text-xs">${base}년 대비 ${target}년 변화 분석</p>
+        const output = document.getElementById('finalOutput');
+        output.classList.remove('hidden');
+        output.innerHTML = `
+            <div class="bg-slate-900 rounded-3xl p-8 text-white shadow-2xl overflow-hidden relative">
+                <div class="relative z-10">
+                    <div class="flex justify-between items-center mb-8">
+                        <div>
+                            <span class="bg-blue-500 text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-widest">Time-Series DDD Analysis</span>
+                            <h2 class="text-2xl font-black mt-2">${base} vs ${target} 분석 결과</h2>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-slate-400 text-xs font-bold uppercase">DDD Estimate</p>
+                            <p class="text-4xl font-black text-blue-400">${ddd.toFixed(2)}%p</p>
+                        </div>
                     </div>
-                    <div class="text-right">
-                        <p class="text-slate-400 text-xs font-bold uppercase">DDD Estimate</p>
-                        <p class="text-4xl font-black text-blue-400">${ddd.toFixed(2)}%p</p>
-                    </div>
-                </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 text-sm">
-                    <div class="bg-white/5 p-5 rounded-2xl border border-white/10">
-                        <p class="text-blue-400 font-bold mb-3 flex items-center capitalize"><span class="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>${tReg} (실험군)</p>
-                        <div class="flex justify-between items-center mb-2"><span>빌라 변화</span><span class="font-bold text-rose-400">+${diff_TV.toFixed(2)}%p</span></div>
-                        <div class="flex justify-between items-center pb-2 border-b border-white/5"><span>아파트 변화</span><span class="font-bold">+${diff_TA.toFixed(2)}%p</span></div>
-                        <div class="mt-2 text-right text-[10px] font-bold">격차(DD): ${ddT.toFixed(2)}%p</div>
-                    </div>
-                    <div class="bg-white/5 p-5 rounded-2xl border border-white/10">
-                        <p class="text-emerald-400 font-bold mb-3 flex items-center capitalize"><span class="w-2 h-2 bg-emerald-400 rounded-full mr-2"></span>${cReg} (대조군)</p>
-                        <div class="flex justify-between items-center mb-2"><span>빌라 변화</span><span class="font-bold text-rose-400">+${diff_CV.toFixed(2)}%p</span></div>
-                        <div class="flex justify-between items-center pb-2 border-b border-white/5"><span>아파트 변화</span><span class="font-bold">+${diff_CA.toFixed(2)}%p</span></div>
-                        <div class="mt-2 text-right text-[10px] font-bold">격차(DD): ${ddC.toFixed(2)}%p</div>
-                    </div>
-                </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div class="bg-white/5 p-6 rounded-2xl border border-white/10">
+                            <p class="text-blue-400 font-bold mb-4 flex items-center"><span class="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>강서구 (실험군)</p>
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-slate-400 text-sm">빌라 월세 전환</span>
+                                    <span class="font-bold text-lg text-rose-400">+${diff_GV.toFixed(2)}%p</span>
+                                </div>
+                                <div class="flex justify-between items-center pb-2 border-b border-white/10">
+                                    <span class="text-slate-400 text-sm">아파트 월세 전환</span>
+                                    <span class="font-bold text-lg text-slate-200">+${diff_GA.toFixed(2)}%p</span>
+                                </div>
+                                <div class="text-right pt-2 text-xs font-bold text-white uppercase tracking-tighter">
+                                    빌라-아파트 격차(DD): ${ddT.toFixed(2)}%p
+                                </div>
+                            </div>
+                        </div>
 
-                <div class="bg-blue-600/10 border border-blue-500/20 p-5 rounded-2xl text-slate-300 text-xs leading-relaxed italic">
-                    "${tReg.toUpperCase()}에서 아파트가 <strong>${diff_TA.toFixed(2)}%p</strong> 변하는 동안 빌라는 <strong>${diff_TV.toFixed(2)}%p</strong>나 급증했습니다. 
-                    이는 대조군인 ${cReg.toUpperCase()}의 격차 대비 <strong>${ddd.toFixed(2)}%p</strong> 높은 수치로, 해당 지역 빌라 시장의 비정상적 월세 가속화를 입증합니다."
+                        <div class="bg-white/5 p-6 rounded-2xl border border-white/10">
+                            <p class="text-emerald-400 font-bold mb-4 flex items-center"><span class="w-2 h-2 bg-emerald-400 rounded-full mr-2"></span>은평구 (대조군)</p>
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-slate-400 text-sm">빌라 월세 전환</span>
+                                    <span class="font-bold text-lg text-rose-400">+${diff_EV.toFixed(2)}%p</span>
+                                </div>
+                                <div class="flex justify-between items-center pb-2 border-b border-white/10">
+                                    <span class="text-slate-400 text-sm">아파트 월세 전환</span>
+                                    <span class="font-bold text-lg text-slate-200">+${diff_EA.toFixed(2)}%p</span>
+                                </div>
+                                <div class="text-right pt-2 text-xs font-bold text-white uppercase tracking-tighter">
+                                    빌라-아파트 격차(DD): ${ddC.toFixed(2)}%p
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-600/10 border border-blue-500/20 p-5 rounded-2xl">
+                        <p class="text-slate-300 leading-relaxed italic text-sm">
+                            "${base}년부터 ${target}년까지 강서구에서 아파트가 <strong>${diff_GA.toFixed(2)}%p</strong> 변하는 동안 빌라는 <strong>${diff_GV.toFixed(2)}%p</strong>나 급증했습니다. 
+                            이는 은평구의 빌라-아파트 격차(${ddC.toFixed(2)}%p) 대비 <strong>${ddd.toFixed(2)}%p</strong> 높은 수치로, 
+                            전세사기 위험이 특정 지역 빌라 시장의 <strong>구조적 이탈</strong>을 가속화했음을 증명합니다."
+                        </p>
+                    </div>
                 </div>
             </div>`;
     }
@@ -258,11 +242,10 @@
         body.innerHTML = Object.keys(results).sort().map(k => {
             const r = results[k];
             return `<tr class="hover:bg-slate-50 transition-colors">
-                <td class="px-6 py-3 font-bold text-slate-700 capitalize">${r.region}</td>
-                <td class="px-6 py-3 text-slate-500 capitalize">${r.type}</td>
-                <td class="px-6 py-3 font-mono text-slate-400">${r.year}</td>
-                <td class="px-6 py-3 text-slate-600">${r.total.toLocaleString()}건</td>
-                <td class="px-6 py-3 font-bold ${r.ratio > 30 ? 'text-rose-500' : 'text-blue-500'}">${r.ratio.toFixed(2)}%</td>
+                <td class="px-6 py-3 font-semibold text-slate-700 capitalize text-center">${r.region} ${r.type}</td>
+                <td class="px-6 py-3 font-mono text-slate-500 text-center">${r.year}</td>
+                <td class="px-6 py-3 text-slate-600 text-center">${r.total.toLocaleString()}건</td>
+                <td class="px-6 py-3 font-bold text-center ${r.ratio > 30 ? 'text-rose-500' : 'text-blue-500'}">${r.ratio.toFixed(2)}%</td>
             </tr>`;
         }).join('');
     }
@@ -271,9 +254,6 @@
         const ctx = document.getElementById('trendChart').getContext('2d');
         document.getElementById('chartContainer').classList.remove('hidden');
         const years = ['2021', '2022', '2023', '2024', '2025'];
-        const tReg = treatSelect.value;
-        const cReg = controlSelect.value;
-
         const getS = (reg, typ) => years.map(y => results[`${reg}_${typ}_${y}`]?.ratio || null);
 
         if (trendChart) trendChart.destroy();
@@ -282,13 +262,13 @@
             data: {
                 labels: years,
                 datasets: [
-                    { label: `${tReg} 빌라`, data: getS(tReg, 'villa'), borderColor: '#ef4444', borderWidth: 3, tension: 0.3, pointStyle: 'circle' },
-                    { label: `${tReg} 아파트`, data: getS(tReg, 'apt'), borderColor: '#ef4444', borderDash: [5, 5], tension: 0.3, pointStyle: 'rect' },
-                    { label: `${cReg} 빌라`, data: getS(cReg, 'villa'), borderColor: '#3b82f6', borderWidth: 3, tension: 0.3, pointStyle: 'circle' },
-                    { label: `${cReg} 아파트`, data: getS(cReg, 'apt'), borderColor: '#3b82f6', borderDash: [5, 5], tension: 0.3, pointStyle: 'rect' }
+                    { label: '강서 빌라', data: getS('gangseo', 'villa'), borderColor: '#ef4444', backgroundColor: '#ef4444', borderWidth: 3, tension: 0.3 },
+                    { label: '강서 아파트', data: getS('gangseo', 'apt'), borderColor: '#f87171', borderDash: [5, 5], tension: 0.3 },
+                    { label: '은평 빌라', data: getS('eunpyeong', 'villa'), borderColor: '#3b82f6', backgroundColor: '#3b82f6', borderWidth: 3, tension: 0.3 },
+                    { label: '은평 아파트', data: getS('eunpyeong', 'apt'), borderColor: '#60a5fa', borderDash: [5, 5], tension: 0.3 }
                 ]
             },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { usePointStyle: true, boxWidth: 10, font: { size: 10 } } } } }
+            options: { responsive: true, maintainAspectRatio: false }
         });
     }
 
